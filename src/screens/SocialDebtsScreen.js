@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFinance } from '../context/FinanceContext';
+import { useTheme } from '../context/ThemeContext';
 import { formatCurrency } from '../utils/currencyFormatter';
 import { SocialDebtCard } from '../components/SocialDebtCard';
 import { AddSocialDebtModal } from '../components/Modals/AddSocialDebtModal';
@@ -24,59 +25,95 @@ export const SocialDebtsScreen = () => {
     deleteSocialDebt,
   } = useFinance();
 
+  const { colors, isDark } = useTheme();
+
   const [activeTab, setActiveTab] = useState(SocialDebtType.THEY_OWE_ME);
   const [showAddModal, setShowAddModal] = useState(false);
 
   const filteredItems = socialDebts.filter((item) => item.type === activeTab);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <View style={styles.container}>
         {/* Encabezado */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Cuentas Claras 🤝</Text>
-          <Text style={styles.headerSubtitle}>
+          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
+            Cuentas Claras 🤝
+          </Text>
+          <Text style={[styles.headerSubtitle, { color: colors.textMuted }]}>
             Favores y préstamos entre amigos y familiares sin olvidos
           </Text>
         </View>
 
         {/* Tarjeta de Resumen Balance de Favores */}
-        <View style={styles.balanceCard}>
+        <View
+          style={[
+            styles.balanceCard,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+              shadowColor: colors.cardShadow,
+            },
+          ]}
+        >
           <View style={styles.balanceCol}>
-            <Text style={styles.balanceLabel}>Me deben dinero</Text>
-            <Text style={[styles.balanceAmount, { color: '#10B981' }]}>
+            <Text style={[styles.balanceLabel, { color: colors.textMuted }]}>
+              Me deben dinero
+            </Text>
+            <Text style={[styles.balanceAmount, { color: colors.success }]}>
               {formatCurrency(totalOwedToMe)}
             </Text>
           </View>
 
-          <View style={styles.balanceDivider} />
+          <View style={[styles.balanceDivider, { backgroundColor: colors.border }]} />
 
           <View style={styles.balanceCol}>
-            <Text style={styles.balanceLabel}>Debo a alguien</Text>
-            <Text style={[styles.balanceAmount, { color: '#EF4444' }]}>
+            <Text style={[styles.balanceLabel, { color: colors.textMuted }]}>
+              Debo a alguien
+            </Text>
+            <Text style={[styles.balanceAmount, { color: colors.danger }]}>
               {formatCurrency(totalIOwe)}
             </Text>
           </View>
         </View>
 
         {/* Pestañas: Me Deben vs Debo */}
-        <View style={styles.tabContainer}>
+        <View
+          style={[
+            styles.tabContainer,
+            { backgroundColor: colors.surfaceSubtle },
+          ]}
+        >
           <TouchableOpacity
             style={[
               styles.tabBtn,
-              activeTab === SocialDebtType.THEY_OWE_ME && styles.tabBtnActiveGreen,
+              activeTab === SocialDebtType.THEY_OWE_ME && {
+                backgroundColor: colors.surface,
+                shadowColor: colors.cardShadow,
+                elevation: 2,
+              },
             ]}
             onPress={() => setActiveTab(SocialDebtType.THEY_OWE_ME)}
           >
             <Ionicons
-              name="arrow-down-circle"
-              size={16}
-              color={activeTab === SocialDebtType.THEY_OWE_ME ? '#FFFFFF' : '#10B981'}
+              name="arrow-down"
+              size={15}
+              color={
+                activeTab === SocialDebtType.THEY_OWE_ME
+                  ? colors.success
+                  : colors.textMuted
+              }
             />
             <Text
               style={[
                 styles.tabText,
-                activeTab === SocialDebtType.THEY_OWE_ME && styles.tabTextActive,
+                {
+                  color:
+                    activeTab === SocialDebtType.THEY_OWE_ME
+                      ? colors.textPrimary
+                      : colors.textMuted,
+                },
+                activeTab === SocialDebtType.THEY_OWE_ME && { fontWeight: '800' },
               ]}
             >
               Me Deben (
@@ -87,19 +124,33 @@ export const SocialDebtsScreen = () => {
           <TouchableOpacity
             style={[
               styles.tabBtn,
-              activeTab === SocialDebtType.I_OWE_THEM && styles.tabBtnActiveRed,
+              activeTab === SocialDebtType.I_OWE_THEM && {
+                backgroundColor: colors.surface,
+                shadowColor: colors.cardShadow,
+                elevation: 2,
+              },
             ]}
             onPress={() => setActiveTab(SocialDebtType.I_OWE_THEM)}
           >
             <Ionicons
-              name="arrow-up-circle"
-              size={16}
-              color={activeTab === SocialDebtType.I_OWE_THEM ? '#FFFFFF' : '#EF4444'}
+              name="arrow-up"
+              size={15}
+              color={
+                activeTab === SocialDebtType.I_OWE_THEM
+                  ? colors.danger
+                  : colors.textMuted
+              }
             />
             <Text
               style={[
                 styles.tabText,
-                activeTab === SocialDebtType.I_OWE_THEM && styles.tabTextActive,
+                {
+                  color:
+                    activeTab === SocialDebtType.I_OWE_THEM
+                      ? colors.textPrimary
+                      : colors.textMuted,
+                },
+                activeTab === SocialDebtType.I_OWE_THEM && { fontWeight: '800' },
               ]}
             >
               Yo Debo (
@@ -122,14 +173,14 @@ export const SocialDebtsScreen = () => {
                     : 'thumbs-up-outline'
                 }
                 size={48}
-                color="#9CA3AF"
+                color={colors.textMuted}
               />
-              <Text style={styles.emptyTitle}>
+              <Text style={[styles.emptyTitle, { color: colors.textSecondary }]}>
                 {activeTab === SocialDebtType.THEY_OWE_ME
                   ? 'Nadie te debe dinero'
                   : '¡No le debes nada a nadie!'}
               </Text>
-              <Text style={styles.emptySub}>
+              <Text style={[styles.emptySub, { color: colors.textMuted }]}>
                 {activeTab === SocialDebtType.THEY_OWE_ME
                   ? 'Registra cuando hagas una compra en el súper, almuerzo o favor para no olvidarlo.'
                   : 'Tus cuentas con tus cercanos están completamente al día.'}
@@ -149,7 +200,7 @@ export const SocialDebtsScreen = () => {
 
         {/* Botón flotante para registrar favor */}
         <TouchableOpacity
-          style={styles.floatingBtn}
+          style={[styles.floatingBtn, { backgroundColor: colors.success }]}
           onPress={() => setShowAddModal(true)}
           activeOpacity={0.85}
         >
@@ -170,7 +221,6 @@ export const SocialDebtsScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
   },
   container: {
     flex: 1,
@@ -183,26 +233,23 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#1F2937',
+    letterSpacing: -0.4,
   },
   headerSubtitle: {
     fontSize: 12,
-    color: '#6B7280',
     marginTop: 2,
+    fontWeight: '500',
   },
   balanceCard: {
     flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
     marginHorizontal: 16,
     marginVertical: 10,
-    padding: 16,
-    borderRadius: 16,
+    padding: 18,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.04,
-    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
     elevation: 2,
   },
   balanceCol: {
@@ -211,22 +258,20 @@ const styles = StyleSheet.create({
   },
   balanceDivider: {
     width: 1,
-    backgroundColor: '#E2E8F0',
   },
   balanceLabel: {
-    fontSize: 12,
-    color: '#6B7280',
+    fontSize: 11,
+    fontWeight: '600',
   },
   balanceAmount: {
-    fontSize: 18,
-    fontWeight: '800',
+    fontSize: 20,
+    fontWeight: '900',
     marginTop: 4,
   },
   tabContainer: {
     flexDirection: 'row',
     marginHorizontal: 16,
-    backgroundColor: '#E2E8F0',
-    borderRadius: 14,
+    borderRadius: 16,
     padding: 4,
     marginBottom: 10,
     gap: 4,
@@ -237,22 +282,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 9,
-    borderRadius: 10,
+    borderRadius: 12,
     gap: 6,
-  },
-  tabBtnActiveGreen: {
-    backgroundColor: '#10B981',
-  },
-  tabBtnActiveRed: {
-    backgroundColor: '#EF4444',
   },
   tabText: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#475569',
-  },
-  tabTextActive: {
-    color: '#FFFFFF',
+    fontWeight: '600',
   },
   listContent: {
     paddingHorizontal: 16,
@@ -266,12 +301,10 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#4B5563',
     marginTop: 12,
   },
   emptySub: {
     fontSize: 12,
-    color: '#9CA3AF',
     textAlign: 'center',
     marginTop: 4,
     paddingHorizontal: 30,
@@ -282,7 +315,6 @@ const styles = StyleSheet.create({
     right: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#10B981',
     paddingHorizontal: 18,
     paddingVertical: 12,
     borderRadius: 24,
@@ -296,6 +328,6 @@ const styles = StyleSheet.create({
   floatingBtnText: {
     color: '#FFFFFF',
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '800',
   },
 });

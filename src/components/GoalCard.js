@@ -9,11 +9,13 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import { useTheme } from '../context/ThemeContext';
 import { formatCurrency } from '../utils/currencyFormatter';
 import { ProgressBar } from './ProgressBar';
 import { AddContributionModal } from './Modals/AddContributionModal';
 
 export const GoalCard = ({ goal, onDeposit, onUpdatePhoto, onDelete }) => {
+  const { colors, isDark } = useTheme();
   const [showDepositModal, setShowDepositModal] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
@@ -25,7 +27,6 @@ export const GoalCard = ({ goal, onDeposit, onUpdatePhoto, onDelete }) => {
   const remaining = Math.max(0, goal.targetAmount - goal.currentAmount);
   const isCompleted = percent >= 100;
 
-  // Frase motivacional según avance
   const getMotivationalPhrase = () => {
     if (isCompleted) return '¡Felicidades! 🎉 Has cumplido tu gran meta.';
     if (percent >= 75) return '¡Casi lo tienes! Estás a un último empujón.';
@@ -94,9 +95,23 @@ export const GoalCard = ({ goal, onDeposit, onUpdatePhoto, onDelete }) => {
   };
 
   return (
-    <View style={styles.card}>
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+          shadowColor: colors.cardShadow,
+        },
+      ]}
+    >
       {/* Portada con foto real de la meta */}
-      <View style={styles.imageCoverContainer}>
+      <View
+        style={[
+          styles.imageCoverContainer,
+          { backgroundColor: isDark ? '#1E293B' : '#EEF2FF' },
+        ]}
+      >
         {goal.photoUri ? (
           <>
             <Image source={{ uri: goal.photoUri }} style={styles.coverImage} />
@@ -104,21 +119,27 @@ export const GoalCard = ({ goal, onDeposit, onUpdatePhoto, onDelete }) => {
               style={styles.changePhotoBadge}
               onPress={handlePickPhoto}
             >
-              <Ionicons name="camera" size={14} color="#FFFFFF" />
+              <Ionicons name="camera" size={13} color="#FFFFFF" />
               <Text style={styles.changePhotoText}>Cambiar foto</Text>
             </TouchableOpacity>
           </>
         ) : (
           <TouchableOpacity
-            style={styles.placeholderCover}
+            style={[
+              styles.placeholderCover,
+              {
+                borderColor: colors.primary,
+                backgroundColor: isDark ? 'rgba(99, 102, 241, 0.08)' : '#EFF6FF',
+              },
+            ]}
             onPress={handlePickPhoto}
             activeOpacity={0.8}
           >
-            <Ionicons name="camera-outline" size={32} color="#3B82F6" />
-            <Text style={styles.placeholderCoverText}>
+            <Ionicons name="camera-outline" size={32} color={colors.primary} />
+            <Text style={[styles.placeholderCoverText, { color: colors.primary }]}>
               + Sube una foto de tu meta (ej. tu moto)
             </Text>
-            <Text style={styles.placeholderSub}>
+            <Text style={[styles.placeholderSub, { color: colors.textMuted }]}>
               Tenerla visible todos los días te mantendrá motivado
             </Text>
           </TouchableOpacity>
@@ -130,30 +151,53 @@ export const GoalCard = ({ goal, onDeposit, onUpdatePhoto, onDelete }) => {
       </View>
 
       <View style={styles.body}>
-        {/* Título y Categoría */}
+        {/* Título y Porcentaje */}
         <View style={styles.titleRow}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.title}>{goal.title}</Text>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>
+              {goal.title}
+            </Text>
             {goal.motivationNote ? (
-              <Text style={styles.motivationNote}>"{goal.motivationNote}"</Text>
+              <Text style={[styles.motivationNote, { color: colors.textMuted }]}>
+                "{goal.motivationNote}"
+              </Text>
             ) : null}
           </View>
-          <View style={styles.percentPill}>
-            <Text style={styles.percentPillText}>{percent}%</Text>
+          <View
+            style={[
+              styles.percentPill,
+              {
+                backgroundColor: isDark ? 'rgba(52, 211, 153, 0.15)' : '#ECFDF5',
+                borderColor: isDark ? '#065F46' : '#A7F3D0',
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.percentPillText,
+                { color: isDark ? '#34D399' : '#047857' },
+              ]}
+            >
+              {percent}%
+            </Text>
           </View>
         </View>
 
         {/* Montos */}
         <View style={styles.amountsRow}>
           <View>
-            <Text style={styles.amountLabel}>Ahorrado hasta hoy</Text>
-            <Text style={styles.currentAmount}>
+            <Text style={[styles.amountLabel, { color: colors.textMuted }]}>
+              Ahorrado hasta hoy
+            </Text>
+            <Text style={[styles.currentAmount, { color: colors.success }]}>
               {formatCurrency(goal.currentAmount)}
             </Text>
           </View>
           <View style={{ alignItems: 'flex-end' }}>
-            <Text style={styles.amountLabel}>Monto Objetivo</Text>
-            <Text style={styles.targetAmount}>
+            <Text style={[styles.amountLabel, { color: colors.textMuted }]}>
+              Monto Objetivo
+            </Text>
+            <Text style={[styles.targetAmount, { color: colors.textSecondary }]}>
               {formatCurrency(goal.targetAmount)}
             </Text>
           </View>
@@ -163,7 +207,7 @@ export const GoalCard = ({ goal, onDeposit, onUpdatePhoto, onDelete }) => {
         <View style={styles.progressContainer}>
           <ProgressBar
             progress={percent}
-            color={isCompleted ? '#10B981' : '#3B82F6'}
+            color={isCompleted ? colors.success : colors.primary}
             height={10}
           />
         </View>
@@ -177,12 +221,13 @@ export const GoalCard = ({ goal, onDeposit, onUpdatePhoto, onDelete }) => {
                 <Ionicons
                   name={isReached ? 'ribbon' : 'ribbon-outline'}
                   size={14}
-                  color={isReached ? '#F59E0B' : '#9CA3AF'}
+                  color={isReached ? '#F59E0B' : colors.textMuted}
                 />
                 <Text
                   style={[
                     styles.milestoneText,
-                    isReached && styles.milestoneTextActive,
+                    { color: isReached ? '#F59E0B' : colors.textMuted },
+                    isReached && { fontWeight: '800' },
                   ]}
                 >
                   {step}%
@@ -193,30 +238,42 @@ export const GoalCard = ({ goal, onDeposit, onUpdatePhoto, onDelete }) => {
         </View>
 
         {/* Frase motivacional */}
-        <View style={styles.motivationalBox}>
-          <Ionicons name="sparkles" size={14} color="#6366F1" />
-          <Text style={styles.motivationalText}>{getMotivationalPhrase()}</Text>
+        <View
+          style={[
+            styles.motivationalBox,
+            {
+              backgroundColor: isDark ? 'rgba(139, 92, 246, 0.12)' : '#F5F3FF',
+              borderColor: isDark ? '#4C1D95' : '#DDD6FE',
+            },
+          ]}
+        >
+          <Ionicons name="sparkles" size={15} color={colors.accentPurple} />
+          <Text style={[styles.motivationalText, { color: colors.accentPurple }]}>
+            {getMotivationalPhrase()}
+          </Text>
         </View>
 
         {/* Botones de acción */}
         <View style={styles.actionsRow}>
           {goal.depositsHistory && goal.depositsHistory.length > 0 && (
             <TouchableOpacity
-              style={styles.historyBtn}
+              style={[styles.historyBtn, { backgroundColor: colors.surfaceSubtle }]}
               onPress={() => setShowHistory(!showHistory)}
             >
               <Ionicons
                 name={showHistory ? 'chevron-up' : 'receipt-outline'}
-                size={16}
-                color="#6B7280"
+                size={15}
+                color={colors.textSecondary}
               />
-              <Text style={styles.historyBtnText}>Aportes</Text>
+              <Text style={[styles.historyBtnText, { color: colors.textSecondary }]}>
+                Aportes
+              </Text>
             </TouchableOpacity>
           )}
 
           {!isCompleted && (
             <TouchableOpacity
-              style={styles.depositBtn}
+              style={[styles.depositBtn, { backgroundColor: colors.primary }]}
               onPress={() => setShowDepositModal(true)}
               activeOpacity={0.8}
             >
@@ -228,17 +285,32 @@ export const GoalCard = ({ goal, onDeposit, onUpdatePhoto, onDelete }) => {
 
         {/* Historial de depósitos */}
         {showHistory && goal.depositsHistory && (
-          <View style={styles.historyList}>
-            <Text style={styles.historyListTitle}>Historial de Ahorros:</Text>
+          <View
+            style={[
+              styles.historyList,
+              {
+                backgroundColor: colors.surfaceSubtle,
+                borderTopColor: colors.borderSubtle,
+              },
+            ]}
+          >
+            <Text style={[styles.historyListTitle, { color: colors.textSecondary }]}>
+              Historial de Ahorros:
+            </Text>
             {goal.depositsHistory.map((item, idx) => (
-              <View key={item.id || idx} style={styles.historyRow}>
+              <View
+                key={item.id || idx}
+                style={[styles.historyRow, { borderBottomColor: colors.border }]}
+              >
                 <View>
-                  <Text style={styles.historyDepositNote}>
+                  <Text style={[styles.historyDepositNote, { color: colors.textPrimary }]}>
                     {item.note || 'Aporte'}
                   </Text>
-                  <Text style={styles.historyDepositDate}>{item.date}</Text>
+                  <Text style={[styles.historyDepositDate, { color: colors.textMuted }]}>
+                    {item.date}
+                  </Text>
                 </View>
-                <Text style={styles.historyDepositAmount}>
+                <Text style={[styles.historyDepositAmount, { color: colors.success }]}>
                   +{formatCurrency(item.amount)}
                 </Text>
               </View>
@@ -259,22 +331,18 @@ export const GoalCard = ({ goal, onDeposit, onUpdatePhoto, onDelete }) => {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
+    borderRadius: 24,
     marginBottom: 16,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 4,
     borderWidth: 1,
-    borderColor: '#F3F4F6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 4,
   },
   imageCoverContainer: {
     width: '100%',
-    height: 160,
-    backgroundColor: '#EEF2FF',
+    height: 170,
     position: 'relative',
   },
   coverImage: {
@@ -288,31 +356,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderWidth: 2,
-    borderColor: '#C7D2FE',
     borderStyle: 'dashed',
     margin: 8,
-    borderRadius: 14,
+    borderRadius: 18,
   },
   placeholderCoverText: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#3B82F6',
+    fontWeight: '800',
     marginTop: 6,
   },
   placeholderSub: {
     fontSize: 11,
-    color: '#6B7280',
     textAlign: 'center',
     marginTop: 2,
   },
   changePhotoBadge: {
     position: 'absolute',
-    bottom: 10,
-    right: 10,
-    backgroundColor: 'rgba(0,0,0,0.65)',
+    bottom: 12,
+    right: 12,
+    backgroundColor: 'rgba(0,0,0,0.7)',
     paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
@@ -320,18 +385,18 @@ const styles = StyleSheet.create({
   changePhotoText: {
     color: '#FFFFFF',
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   deleteCoverBtn: {
     position: 'absolute',
-    top: 10,
-    right: 10,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    padding: 6,
+    top: 12,
+    right: 12,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    padding: 7,
     borderRadius: 20,
   },
   body: {
-    padding: 16,
+    padding: 18,
   },
   titleRow: {
     flexDirection: 'row',
@@ -341,51 +406,45 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 18,
-    fontWeight: '800',
-    color: '#1F2937',
+    fontWeight: '900',
+    letterSpacing: -0.4,
   },
   motivationNote: {
     fontSize: 12,
     fontStyle: 'italic',
-    color: '#6B7280',
-    marginTop: 2,
+    marginTop: 3,
   },
   percentPill: {
-    backgroundColor: '#EFF6FF',
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#BFDBFE',
   },
   percentPillText: {
-    color: '#2563EB',
-    fontWeight: '800',
+    fontWeight: '900',
     fontSize: 13,
   },
   amountsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   amountLabel: {
     fontSize: 11,
-    color: '#6B7280',
+    fontWeight: '600',
   },
   currentAmount: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#10B981',
+    fontSize: 22,
+    fontWeight: '900',
     marginTop: 2,
   },
   targetAmount: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#4B5563',
     marginTop: 2,
   },
   progressContainer: {
-    marginVertical: 8,
+    marginVertical: 10,
   },
   milestonesRow: {
     flexDirection: 'row',
@@ -400,26 +459,20 @@ const styles = StyleSheet.create({
   },
   milestoneText: {
     fontSize: 11,
-    color: '#9CA3AF',
     fontWeight: '600',
-  },
-  milestoneTextActive: {
-    color: '#D97706',
-    fontWeight: '700',
   },
   motivationalBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    backgroundColor: '#F5F3FF',
-    padding: 10,
-    borderRadius: 10,
-    marginVertical: 10,
+    gap: 8,
+    borderWidth: 1,
+    padding: 12,
+    borderRadius: 14,
+    marginVertical: 12,
   },
   motivationalText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#5B21B6',
+    fontWeight: '700',
     flex: 1,
   },
   actionsRow: {
@@ -427,67 +480,68 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     alignItems: 'center',
     gap: 10,
-    marginTop: 6,
+    marginTop: 4,
   },
   historyBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 8,
+    borderRadius: 12,
   },
   historyBtnText: {
-    fontSize: 13,
-    color: '#4B5563',
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '700',
   },
   depositBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#3B82F6',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 9,
+    borderRadius: 14,
     gap: 6,
+    shadowColor: '#4F46E5',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 3,
   },
   depositBtnText: {
     color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 13,
+    fontWeight: '800',
   },
   historyList: {
-    marginTop: 12,
-    paddingTop: 10,
+    marginTop: 14,
+    paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
-    padding: 10,
+    borderRadius: 14,
+    padding: 12,
   },
   historyListTitle: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#4B5563',
+    fontWeight: '800',
     marginBottom: 8,
   },
   historyRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 6,
+    marginBottom: 8,
+    paddingBottom: 6,
+    borderBottomWidth: 1,
   },
   historyDepositNote: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#1F2937',
+    fontWeight: '700',
   },
   historyDepositDate: {
     fontSize: 11,
-    color: '#9CA3AF',
+    marginTop: 1,
   },
   historyDepositAmount: {
     fontSize: 13,
-    fontWeight: '700',
-    color: '#10B981',
+    fontWeight: '800',
   },
 });

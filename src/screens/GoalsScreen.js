@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFinance } from '../context/FinanceContext';
+import { useTheme } from '../context/ThemeContext';
 import { formatCurrency } from '../utils/currencyFormatter';
 import { GoalCard } from '../components/GoalCard';
 import { AddGoalModal } from '../components/Modals/AddGoalModal';
@@ -24,6 +25,8 @@ export const GoalsScreen = () => {
     deleteGoal,
   } = useFinance();
 
+  const { colors, isDark } = useTheme();
+
   const [showAddGoal, setShowAddGoal] = useState(false);
 
   const overallPercent = totalTargetGoals > 0
@@ -38,21 +41,31 @@ export const GoalsScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <View style={styles.container}>
         {/* Cabecera */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Metas de Ahorro 🚀</Text>
-          <Text style={styles.headerSubtitle}>
-            Tus sueños con fotos, hitos y motivación diaria
+          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
+            Metas de Ahorro 🚀
+          </Text>
+          <Text style={[styles.headerSubtitle, { color: colors.textMuted }]}>
+            Tus sueños con fotos reales, hitos e interactividad
           </Text>
         </View>
 
         {/* Tarjeta de Progreso Global */}
-        <View style={styles.globalCard}>
+        <View
+          style={[
+            styles.globalCard,
+            {
+              backgroundColor: isDark ? '#141E33' : '#0F172A',
+              borderColor: isDark ? '#273553' : '#1E293B',
+            },
+          ]}
+        >
           <View style={styles.globalHeader}>
             <View>
-              <Text style={styles.globalLabel}>PROGRESO TOTAL DE AHORRO</Text>
+              <Text style={styles.globalLabel}>PROGRESO TOTAL ACUMULADO</Text>
               <Text style={styles.globalAmount}>
                 {formatCurrency(totalSavedInGoals)}
               </Text>
@@ -65,9 +78,9 @@ export const GoalsScreen = () => {
           <View style={styles.progressBarWrap}>
             <ProgressBar
               progress={overallPercent}
-              color="#3B82F6"
+              color="#38BDF8"
               height={10}
-              backgroundColor="#334155"
+              backgroundColor="rgba(255, 255, 255, 0.12)"
             />
           </View>
 
@@ -83,10 +96,12 @@ export const GoalsScreen = () => {
         >
           {goals.length === 0 ? (
             <View style={styles.emptyState}>
-              <Ionicons name="trophy-outline" size={54} color="#9CA3AF" />
-              <Text style={styles.emptyTitle}>Aún no tienes metas de ahorro</Text>
-              <Text style={styles.emptySub}>
-                Crea una meta (ej. comprar una moto, viajar o renovar algo de tu hogar) y sube una foto real para motivarte.
+              <Ionicons name="trophy-outline" size={54} color={colors.textMuted} />
+              <Text style={[styles.emptyTitle, { color: colors.textSecondary }]}>
+                Aún no tienes metas de ahorro
+              </Text>
+              <Text style={[styles.emptySub, { color: colors.textMuted }]}>
+                Crea una meta (ej. comprar una moto, viajar o un proyecto personal) y sube una foto real para motivarte.
               </Text>
             </View>
           ) : (
@@ -104,7 +119,7 @@ export const GoalsScreen = () => {
 
         {/* Botón flotante para nueva meta */}
         <TouchableOpacity
-          style={styles.floatingBtn}
+          style={[styles.floatingBtn, { backgroundColor: colors.primary }]}
           onPress={() => setShowAddGoal(true)}
           activeOpacity={0.85}
         >
@@ -125,7 +140,6 @@ export const GoalsScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
   },
   container: {
     flex: 1,
@@ -138,23 +152,23 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#1F2937',
+    letterSpacing: -0.4,
   },
   headerSubtitle: {
     fontSize: 12,
-    color: '#6B7280',
     marginTop: 2,
+    fontWeight: '500',
   },
   globalCard: {
-    backgroundColor: '#0F172A',
-    borderRadius: 18,
+    borderRadius: 24,
     marginHorizontal: 16,
     marginVertical: 10,
-    padding: 18,
+    padding: 20,
+    borderWidth: 1,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
     elevation: 4,
   },
   globalHeader: {
@@ -164,34 +178,35 @@ const styles = StyleSheet.create({
   },
   globalLabel: {
     fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1,
+    fontWeight: '800',
+    letterSpacing: 1.2,
     color: '#94A3B8',
   },
   globalAmount: {
-    fontSize: 26,
-    fontWeight: '800',
+    fontSize: 28,
+    fontWeight: '900',
     color: '#38BDF8',
     marginTop: 4,
   },
   percentBadge: {
     backgroundColor: 'rgba(56, 189, 248, 0.2)',
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 4,
-    borderRadius: 12,
+    borderRadius: 14,
   },
   percentText: {
     color: '#38BDF8',
     fontSize: 14,
-    fontWeight: '800',
+    fontWeight: '900',
   },
   progressBarWrap: {
-    marginVertical: 12,
+    marginVertical: 14,
   },
   globalTargetText: {
     fontSize: 12,
     color: '#94A3B8',
     textAlign: 'right',
+    fontWeight: '500',
   },
   listContent: {
     paddingHorizontal: 16,
@@ -205,12 +220,10 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#4B5563',
     marginTop: 12,
   },
   emptySub: {
     fontSize: 12,
-    color: '#9CA3AF',
     textAlign: 'center',
     marginTop: 4,
     paddingHorizontal: 30,
@@ -221,7 +234,6 @@ const styles = StyleSheet.create({
     right: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#3B82F6',
     paddingHorizontal: 18,
     paddingVertical: 12,
     borderRadius: 24,
@@ -235,6 +247,6 @@ const styles = StyleSheet.create({
   floatingBtnText: {
     color: '#FFFFFF',
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '800',
   },
 });

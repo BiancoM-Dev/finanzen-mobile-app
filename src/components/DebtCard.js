@@ -7,6 +7,7 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../context/ThemeContext';
 import { formatCurrency } from '../utils/currencyFormatter';
 import { getDueAlertStatus } from '../utils/dateUtils';
 import { ProgressBar } from './ProgressBar';
@@ -14,6 +15,7 @@ import { PayDebtModal } from './Modals/PayDebtModal';
 import { ReceiptViewerModal } from './Modals/ReceiptViewerModal';
 
 export const DebtCard = ({ debt, onPay, onDelete }) => {
+  const { colors, isDark } = useTheme();
   const [showPayModal, setShowPayModal] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [viewingReceipt, setViewingReceipt] = useState(null);
@@ -37,55 +39,85 @@ export const DebtCard = ({ debt, onPay, onDelete }) => {
   };
 
   return (
-    <View style={styles.card}>
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+          shadowColor: colors.cardShadow,
+        },
+      ]}
+    >
       {/* Cabecera */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <View style={styles.iconWrap}>
-            <Ionicons name="card" size={20} color="#6366F1" />
+          <View style={[styles.iconWrap, { backgroundColor: colors.primaryLight }]}>
+            <Ionicons name="card" size={20} color={colors.primary} />
           </View>
           <View>
-            <Text style={styles.title}>{debt.name}</Text>
-            <Text style={styles.category}>{debt.category || 'Deuda'}</Text>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>
+              {debt.name}
+            </Text>
+            <View style={styles.badgeRow}>
+              <View style={[styles.categoryBadge, { backgroundColor: colors.surfaceSubtle }]}>
+                <Text style={[styles.category, { color: colors.textSecondary }]}>
+                  {debt.category || 'Deuda'}
+                </Text>
+              </View>
+            </View>
           </View>
         </View>
 
         <TouchableOpacity onPress={handleDelete} style={styles.deleteBtn}>
-          <Ionicons name="trash-outline" size={18} color="#9CA3AF" />
+          <Ionicons name="trash-outline" size={18} color={colors.textMuted} />
         </TouchableOpacity>
       </View>
 
       {/* Montos */}
       <View style={styles.amountsRow}>
         <View>
-          <Text style={styles.amountLabel}>Saldo pendiente</Text>
-          <Text style={[styles.remainingAmount, isFullyPaid && styles.paidText]}>
+          <Text style={[styles.amountLabel, { color: colors.textMuted }]}>
+            Saldo pendiente
+          </Text>
+          <Text
+            style={[
+              styles.remainingAmount,
+              { color: isFullyPaid ? colors.success : colors.danger },
+            ]}
+          >
             {isFullyPaid ? '¡Deuda Saldada! 🎉' : formatCurrency(debt.remainingAmount)}
           </Text>
         </View>
         <View style={styles.alignRight}>
-          <Text style={styles.amountLabel}>Monto total</Text>
-          <Text style={styles.totalAmount}>{formatCurrency(debt.totalAmount)}</Text>
+          <Text style={[styles.amountLabel, { color: colors.textMuted }]}>
+            Monto total
+          </Text>
+          <Text style={[styles.totalAmount, { color: colors.textSecondary }]}>
+            {formatCurrency(debt.totalAmount)}
+          </Text>
         </View>
       </View>
 
       {/* Progreso de Cuotas */}
       <View style={styles.progressContainer}>
         <View style={styles.progressInfo}>
-          <Text style={styles.installmentText}>
+          <Text style={[styles.installmentText, { color: colors.textSecondary }]}>
             Cuota {paidInstallments} de {totalInstallments} pagadas
           </Text>
-          <Text style={styles.percentText}>{progressPercent}%</Text>
+          <Text style={[styles.percentText, { color: colors.primary }]}>
+            {progressPercent}%
+          </Text>
         </View>
         <ProgressBar
           progress={progressPercent}
-          color={isFullyPaid ? '#10B981' : '#6366F1'}
+          color={isFullyPaid ? colors.success : colors.primary}
           height={8}
         />
       </View>
 
       {/* Pie con vencimiento y botón de acción */}
-      <View style={styles.footer}>
+      <View style={[styles.footer, { borderTopColor: colors.borderSubtle }]}>
         <View style={styles.dueBadge}>
           <Ionicons name="calendar-outline" size={14} color={dueStatus.color} />
           <Text style={[styles.dueText, { color: dueStatus.color }]}>
@@ -96,25 +128,27 @@ export const DebtCard = ({ debt, onPay, onDelete }) => {
         <View style={styles.actionsRow}>
           {debt.paymentsHistory && debt.paymentsHistory.length > 0 && (
             <TouchableOpacity
-              style={styles.historyBtn}
+              style={[styles.historyBtn, { backgroundColor: colors.surfaceSubtle }]}
               onPress={() => setShowHistory(!showHistory)}
             >
               <Ionicons
                 name={showHistory ? 'chevron-up' : 'time-outline'}
-                size={16}
-                color="#6B7280"
+                size={14}
+                color={colors.textSecondary}
               />
-              <Text style={styles.historyBtnText}>Historial</Text>
+              <Text style={[styles.historyBtnText, { color: colors.textSecondary }]}>
+                Historial
+              </Text>
             </TouchableOpacity>
           )}
 
           {!isFullyPaid && (
             <TouchableOpacity
-              style={styles.payBtn}
+              style={[styles.payBtn, { backgroundColor: colors.success }]}
               onPress={() => setShowPayModal(true)}
               activeOpacity={0.8}
             >
-              <Ionicons name="cash-outline" size={16} color="#FFFFFF" />
+              <Ionicons name="cash-outline" size={15} color="#FFFFFF" />
               <Text style={styles.payBtnText}>Pagar Cuota</Text>
             </TouchableOpacity>
           )}
@@ -123,30 +157,51 @@ export const DebtCard = ({ debt, onPay, onDelete }) => {
 
       {/* Historial desplegable de pagos y comprobantes */}
       {showHistory && debt.paymentsHistory && (
-        <View style={styles.historyContainer}>
-          <Text style={styles.historyTitle}>Últimos Pagos Registrados:</Text>
+        <View
+          style={[
+            styles.historyContainer,
+            { backgroundColor: colors.surfaceSubtle, borderTopColor: colors.borderSubtle },
+          ]}
+        >
+          <Text style={[styles.historyTitle, { color: colors.textSecondary }]}>
+            Últimos Pagos Registrados:
+          </Text>
           {debt.paymentsHistory.map((item, idx) => (
-            <View key={item.id || idx} style={styles.historyItem}>
+            <View
+              key={item.id || idx}
+              style={[styles.historyItem, { borderBottomColor: colors.border }]}
+            >
               <View style={styles.historyItemLeft}>
-                <Ionicons name="checkmark-circle" size={16} color="#10B981" />
+                <Ionicons name="checkmark-circle" size={16} color={colors.success} />
                 <View>
-                  <Text style={styles.historyItemTitle}>
+                  <Text style={[styles.historyItemTitle, { color: colors.textPrimary }]}>
                     Cuota #{item.installmentNumber} - {formatCurrency(item.amount)}
                   </Text>
-                  <Text style={styles.historyItemDate}>{item.date}</Text>
+                  <Text style={[styles.historyItemDate, { color: colors.textMuted }]}>
+                    {item.date}
+                  </Text>
                   {item.notes ? (
-                    <Text style={styles.historyItemNote}>{item.notes}</Text>
+                    <Text style={[styles.historyItemNote, { color: colors.textSecondary }]}>
+                      {item.notes}
+                    </Text>
                   ) : null}
                 </View>
               </View>
 
               {item.receiptUri && (
                 <TouchableOpacity
-                  style={styles.receiptBadge}
+                  style={[
+                    styles.receiptBadge,
+                    {
+                      backgroundColor: isDark ? 'rgba(99, 102, 241, 0.2)' : '#DBEAFE',
+                    },
+                  ]}
                   onPress={() => setViewingReceipt(item.receiptUri)}
                 >
-                  <Ionicons name="image-outline" size={14} color="#2563EB" />
-                  <Text style={styles.receiptBadgeText}>Ver Comprobante</Text>
+                  <Ionicons name="image-outline" size={13} color={colors.primary} />
+                  <Text style={[styles.receiptBadgeText, { color: colors.primary }]}>
+                    Comprobante
+                  </Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -175,17 +230,14 @@ export const DebtCard = ({ debt, onPay, onDelete }) => {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 16,
+    borderRadius: 20,
+    padding: 18,
     marginBottom: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 3,
     borderWidth: 1,
-    borderColor: '#F3F4F6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   header: {
     flexDirection: 'row',
@@ -196,22 +248,29 @@ const styles = StyleSheet.create({
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
   },
   iconWrap: {
-    backgroundColor: '#EEF2FF',
-    padding: 8,
-    borderRadius: 12,
+    padding: 10,
+    borderRadius: 14,
   },
   title: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#1F2937',
+    fontWeight: '800',
+    letterSpacing: -0.3,
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    marginTop: 4,
+  },
+  categoryBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
   },
   category: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginTop: 1,
+    fontSize: 11,
+    fontWeight: '600',
   },
   deleteBtn: {
     padding: 6,
@@ -219,26 +278,21 @@ const styles = StyleSheet.create({
   amountsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   amountLabel: {
     fontSize: 11,
-    color: '#6B7280',
-    marginBottom: 2,
+    fontWeight: '600',
+    marginBottom: 3,
   },
   remainingAmount: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#EF4444',
-  },
-  paidText: {
-    color: '#10B981',
-    fontSize: 16,
+    fontSize: 22,
+    fontWeight: '900',
+    letterSpacing: -0.5,
   },
   totalAmount: {
     fontSize: 15,
-    fontWeight: '600',
-    color: '#4B5563',
+    fontWeight: '700',
   },
   alignRight: {
     alignItems: 'flex-end',
@@ -253,30 +307,27 @@ const styles = StyleSheet.create({
   },
   installmentText: {
     fontSize: 12,
-    color: '#4B5563',
-    fontWeight: '500',
+    fontWeight: '600',
   },
   percentText: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#6366F1',
+    fontWeight: '800',
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
     paddingTop: 12,
   },
   dueBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 5,
   },
   dueText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   actionsRow: {
     flexDirection: 'row',
@@ -287,41 +338,42 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
     paddingVertical: 6,
+    borderRadius: 10,
   },
   historyBtnText: {
-    fontSize: 12,
-    color: '#6B7280',
-    fontWeight: '600',
+    fontSize: 11,
+    fontWeight: '700',
   },
   payBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#10B981',
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 12,
     gap: 6,
+    shadowColor: '#10B981',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
   },
   payBtnText: {
     color: '#FFFFFF',
     fontSize: 13,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   historyContainer: {
     marginTop: 14,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-    backgroundColor: '#F9FAFB',
-    padding: 10,
-    borderRadius: 12,
+    padding: 12,
+    borderRadius: 14,
   },
   historyTitle: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#4B5563',
+    fontWeight: '800',
     marginBottom: 8,
   },
   historyItem: {
@@ -331,7 +383,6 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     paddingBottom: 6,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
   },
   historyItemLeft: {
     flexDirection: 'row',
@@ -341,21 +392,19 @@ const styles = StyleSheet.create({
   historyItemTitle: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#1F2937',
   },
   historyItemDate: {
     fontSize: 11,
-    color: '#9CA3AF',
+    marginTop: 1,
   },
   historyItemNote: {
     fontSize: 11,
-    color: '#4B5563',
     fontStyle: 'italic',
+    marginTop: 2,
   },
   receiptBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#DBEAFE',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
@@ -363,7 +412,6 @@ const styles = StyleSheet.create({
   },
   receiptBadgeText: {
     fontSize: 11,
-    fontWeight: '600',
-    color: '#1D4ED8',
+    fontWeight: '700',
   },
 });

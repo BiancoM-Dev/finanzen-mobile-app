@@ -7,6 +7,7 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../context/ThemeContext';
 import { formatCurrency } from '../utils/currencyFormatter';
 import { getDueAlertStatus } from '../utils/dateUtils';
 import { sendFriendlyWhatsAppReminder } from '../utils/whatsappHelper';
@@ -14,6 +15,7 @@ import { useFinance } from '../context/FinanceContext';
 import { ReceiptViewerModal } from './Modals/ReceiptViewerModal';
 
 export const BillCard = ({ bill, onTogglePaid, onToggleSplitMember, onDelete }) => {
+  const { colors, isDark } = useTheme();
   const { primaryBankAccount } = useFinance();
   const [showSplitDetails, setShowSplitDetails] = useState(false);
   const [viewingReceipt, setViewingReceipt] = useState(null);
@@ -41,49 +43,87 @@ export const BillCard = ({ bill, onTogglePaid, onToggleSplitMember, onDelete }) 
   };
 
   return (
-    <View style={styles.card}>
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+          shadowColor: colors.cardShadow,
+        },
+      ]}
+    >
       {/* Cabecera */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
-          <View style={styles.iconWrap}>
+          <View
+            style={[
+              styles.iconWrap,
+              { backgroundColor: isDark ? 'rgba(245, 158, 11, 0.18)' : '#FEF3C7' },
+            ]}
+          >
             <Ionicons name="flash-outline" size={20} color="#F59E0B" />
           </View>
           <View>
-            <Text style={styles.title}>{bill.name}</Text>
-            <Text style={styles.category}>{bill.category}</Text>
+            <Text style={[styles.title, { color: colors.textPrimary }]}>
+              {bill.name}
+            </Text>
+            <Text style={[styles.category, { color: colors.textMuted }]}>
+              {bill.category}
+            </Text>
           </View>
         </View>
 
         <TouchableOpacity onPress={handleDelete} style={styles.deleteBtn}>
-          <Ionicons name="trash-outline" size={18} color="#9CA3AF" />
+          <Ionicons name="trash-outline" size={18} color={colors.textMuted} />
         </TouchableOpacity>
       </View>
 
       {/* Monto y Estado */}
       <View style={styles.bodyRow}>
         <View>
-          <Text style={styles.label}>Monto del mes</Text>
-          <Text style={styles.amount}>{formatCurrency(bill.estimatedAmount)}</Text>
+          <Text style={[styles.label, { color: colors.textMuted }]}>
+            Monto del mes
+          </Text>
+          <Text style={[styles.amount, { color: colors.textPrimary }]}>
+            {formatCurrency(bill.estimatedAmount)}
+          </Text>
         </View>
 
         <TouchableOpacity
-          style={[styles.statusBadge, bill.isPaid ? styles.paidBadge : styles.pendingBadge]}
+          style={[
+            styles.statusBadge,
+            bill.isPaid
+              ? {
+                  backgroundColor: colors.successLight,
+                  borderColor: colors.successBorder,
+                }
+              : {
+                  backgroundColor: colors.warningLight,
+                  borderColor: colors.warningBorder,
+                },
+          ]}
           onPress={() => onTogglePaid(bill.id)}
           activeOpacity={0.8}
         >
           <Ionicons
             name={bill.isPaid ? 'checkmark-circle' : 'time-outline'}
             size={16}
-            color={bill.isPaid ? '#047857' : '#B45309'}
+            color={bill.isPaid ? colors.success : colors.warning}
           />
-          <Text style={[styles.statusText, bill.isPaid ? styles.paidText : styles.pendingText]}>
+          <Text
+            style={[
+              styles.statusText,
+              { color: bill.isPaid ? colors.successText : colors.warningText },
+            ]}
+          >
             {bill.isPaid ? 'Pagado' : 'Marcar Pagado'}
           </Text>
         </TouchableOpacity>
       </View>
 
       {/* Alerta de vencimiento y Split Toggle */}
-      <View style={styles.footerRow}>
+      <View style={[styles.footerRow, { borderTopColor: colors.borderSubtle }]}>
         <View style={styles.dueBadge}>
           <Ionicons name="calendar-outline" size={14} color={dueStatus.color} />
           <Text style={[styles.dueText, { color: dueStatus.color }]}>
@@ -93,18 +133,23 @@ export const BillCard = ({ bill, onTogglePaid, onToggleSplitMember, onDelete }) 
 
         {bill.isSplit && bill.splitMembers && bill.splitMembers.length > 0 && (
           <TouchableOpacity
-            style={styles.splitToggleBtn}
+            style={[
+              styles.splitToggleBtn,
+              {
+                backgroundColor: colors.primaryLight,
+              },
+            ]}
             onPress={() => setShowSplitDetails(!showSplitDetails)}
           >
-            <Ionicons name="people-outline" size={15} color="#4F46E5" />
-            <Text style={styles.splitToggleText}>
+            <Ionicons name="people-outline" size={14} color={colors.primary} />
+            <Text style={[styles.splitToggleText, { color: colors.primary }]}>
               Dividida ({bill.splitMembers.filter((m) => m.isPaid).length}/
               {bill.splitMembers.length})
             </Text>
             <Ionicons
               name={showSplitDetails ? 'chevron-up' : 'chevron-down'}
-              size={14}
-              color="#4F46E5"
+              size={13}
+              color={colors.primary}
             />
           </TouchableOpacity>
         )}
@@ -112,19 +157,30 @@ export const BillCard = ({ bill, onTogglePaid, onToggleSplitMember, onDelete }) 
 
       {/* Desglose de División del Hogar (Split) */}
       {bill.isSplit && showSplitDetails && bill.splitMembers && (
-        <View style={styles.splitBox}>
-          <Text style={styles.splitBoxTitle}>Miembros del hogar que aportan:</Text>
+        <View
+          style={[
+            styles.splitBox,
+            { backgroundColor: colors.surfaceSubtle, borderColor: colors.border },
+          ]}
+        >
+          <Text style={[styles.splitBoxTitle, { color: colors.textSecondary }]}>
+            Miembros del hogar que aportan:
+          </Text>
           {bill.splitMembers.map((member) => (
             <View key={member.id} style={styles.memberRow}>
               <View style={styles.memberInfo}>
                 <Ionicons
                   name={member.isPaid ? 'checkmark-circle' : 'ellipse-outline'}
                   size={18}
-                  color={member.isPaid ? '#10B981' : '#9CA3AF'}
+                  color={member.isPaid ? colors.success : colors.textMuted}
                 />
                 <View>
-                  <Text style={styles.memberName}>{member.name}</Text>
-                  <Text style={styles.memberAmount}>{formatCurrency(member.amount)}</Text>
+                  <Text style={[styles.memberName, { color: colors.textPrimary }]}>
+                    {member.name}
+                  </Text>
+                  <Text style={[styles.memberAmount, { color: colors.textMuted }]}>
+                    {formatCurrency(member.amount)}
+                  </Text>
                 </View>
               </View>
 
@@ -134,7 +190,7 @@ export const BillCard = ({ bill, onTogglePaid, onToggleSplitMember, onDelete }) 
                     style={styles.remindBtn}
                     onPress={() => handleRemindMember(member)}
                   >
-                    <Ionicons name="logo-whatsapp" size={14} color="#059669" />
+                    <Ionicons name="logo-whatsapp" size={13} color="#059669" />
                     <Text style={styles.remindBtnText}>Cobrar</Text>
                   </TouchableOpacity>
                 )}
@@ -142,14 +198,20 @@ export const BillCard = ({ bill, onTogglePaid, onToggleSplitMember, onDelete }) 
                 <TouchableOpacity
                   style={[
                     styles.toggleMemberPaidBtn,
-                    member.isPaid && styles.toggleMemberPaidActive,
+                    {
+                      backgroundColor: member.isPaid
+                        ? colors.success
+                        : colors.surfaceElevated,
+                      borderColor: colors.border,
+                      borderWidth: member.isPaid ? 0 : 1,
+                    },
                   ]}
                   onPress={() => onToggleSplitMember(bill.id, member.id)}
                 >
                   <Text
                     style={[
                       styles.toggleMemberPaidText,
-                      member.isPaid && styles.toggleMemberPaidTextActive,
+                      { color: member.isPaid ? '#FFFFFF' : colors.textSecondary },
                     ]}
                   >
                     {member.isPaid ? 'Depositó' : 'Pendiente'}
@@ -164,11 +226,13 @@ export const BillCard = ({ bill, onTogglePaid, onToggleSplitMember, onDelete }) 
       {/* Comprobante general si existe */}
       {bill.receiptUri && (
         <TouchableOpacity
-          style={styles.receiptRow}
+          style={[styles.receiptRow, { borderTopColor: colors.borderSubtle }]}
           onPress={() => setViewingReceipt(bill.receiptUri)}
         >
-          <Ionicons name="receipt-outline" size={15} color="#2563EB" />
-          <Text style={styles.receiptText}>Ver comprobante de pago adjunto</Text>
+          <Ionicons name="receipt-outline" size={15} color={colors.primary} />
+          <Text style={[styles.receiptText, { color: colors.primary }]}>
+            Ver comprobante de pago adjunto
+          </Text>
         </TouchableOpacity>
       )}
 
@@ -184,42 +248,38 @@ export const BillCard = ({ bill, onTogglePaid, onToggleSplitMember, onDelete }) 
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 16,
+    borderRadius: 20,
+    padding: 18,
     marginBottom: 14,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 3,
     borderWidth: 1,
-    borderColor: '#F3F4F6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
   },
   iconWrap: {
-    backgroundColor: '#FEF3C7',
-    padding: 8,
-    borderRadius: 12,
+    padding: 10,
+    borderRadius: 14,
   },
   title: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#1F2937',
+    fontWeight: '800',
+    letterSpacing: -0.3,
   },
   category: {
-    fontSize: 12,
-    color: '#6B7280',
+    fontSize: 11,
+    fontWeight: '500',
     marginTop: 1,
   },
   deleteBtn: {
@@ -229,17 +289,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   label: {
     fontSize: 11,
-    color: '#6B7280',
-    marginBottom: 2,
+    fontWeight: '600',
+    marginBottom: 3,
   },
   amount: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#1F2937',
+    fontSize: 22,
+    fontWeight: '900',
+    letterSpacing: -0.5,
   },
   statusBadge: {
     flexDirection: 'row',
@@ -247,67 +307,50 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: 12,
+    borderWidth: 1,
     gap: 6,
   },
-  paidBadge: {
-    backgroundColor: '#D1FAE5',
-  },
-  pendingBadge: {
-    backgroundColor: '#FEF3C7',
-  },
   statusText: {
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  paidText: {
-    color: '#047857',
-  },
-  pendingText: {
-    color: '#B45309',
+    fontSize: 12,
+    fontWeight: '800',
   },
   footerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-    paddingTop: 10,
+    paddingTop: 12,
   },
   dueBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 5,
   },
   dueText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   splitToggleBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EEF2FF',
     paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
+    paddingVertical: 5,
+    borderRadius: 10,
     gap: 4,
   },
   splitToggleText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#4F46E5',
+    fontSize: 11,
+    fontWeight: '700',
   },
   splitBox: {
     marginTop: 12,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 12,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
   },
   splitBoxTitle: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#475569',
+    fontWeight: '800',
     marginBottom: 10,
   },
   memberRow: {
@@ -323,12 +366,11 @@ const styles = StyleSheet.create({
   },
   memberName: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#1E293B',
+    fontWeight: '700',
   },
   memberAmount: {
     fontSize: 12,
-    color: '#64748B',
+    marginTop: 1,
   },
   memberActions: {
     flexDirection: 'row',
@@ -342,44 +384,34 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#A7F3D0',
     paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingVertical: 5,
     borderRadius: 8,
     gap: 4,
   },
   remindBtnText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#059669',
   },
   toggleMemberPaidBtn: {
     paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingVertical: 5,
     borderRadius: 8,
-    backgroundColor: '#F1F5F9',
-  },
-  toggleMemberPaidActive: {
-    backgroundColor: '#10B981',
   },
   toggleMemberPaidText: {
     fontSize: 11,
-    fontWeight: '600',
-    color: '#64748B',
-  },
-  toggleMemberPaidTextActive: {
-    color: '#FFFFFF',
+    fontWeight: '700',
   },
   receiptRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginTop: 10,
-    paddingTop: 8,
+    marginTop: 12,
+    paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
   },
   receiptText: {
     fontSize: 12,
-    color: '#2563EB',
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });

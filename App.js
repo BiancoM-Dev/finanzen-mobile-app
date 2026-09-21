@@ -1,23 +1,25 @@
 import React from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { FinanceProvider, useFinance } from './src/context/FinanceContext';
 import { AppNavigator } from './src/navigation/AppNavigator';
 
 function MainApp() {
   const { loading } = useFinance();
+  const { isDark, colors } = useTheme();
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3B82F6" />
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   return (
     <>
-      <StatusBar style="dark" />
+      <StatusBar style={isDark ? 'light' : 'dark'} />
       <AppNavigator />
     </>
   );
@@ -25,16 +27,17 @@ function MainApp() {
 
 export default function App() {
   return (
-    <FinanceProvider>
-      <MainApp />
-    </FinanceProvider>
+    <ThemeProvider>
+      <FinanceProvider>
+        <MainApp />
+      </FinanceProvider>
+    </ThemeProvider>
   );
 }
 
 const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
     justifyContent: 'center',
     alignItems: 'center',
   },

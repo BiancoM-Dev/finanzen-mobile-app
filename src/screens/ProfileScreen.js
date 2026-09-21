@@ -10,10 +10,12 @@ import {
   Alert,
   Modal,
   TextInput,
+  Switch,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useFinance } from '../context/FinanceContext';
+import { useTheme } from '../context/ThemeContext';
 import { BankAccountCard } from '../components/BankAccountCard';
 import { AddBankAccountModal } from '../components/Modals/AddBankAccountModal';
 
@@ -26,6 +28,8 @@ export const ProfileScreen = () => {
     deleteBankAccount,
     resetData,
   } = useFinance();
+
+  const { colors, isDark, toggleTheme } = useTheme();
 
   const [showAddBank, setShowAddBank] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -92,37 +96,54 @@ export const ProfileScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
         {/* Cabecera */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Mi Perfil y Ajustes</Text>
-          <Text style={styles.headerSubtitle}>
-            Configuración personal, Google Auth y cuentas bancarias
+          <Text style={[styles.headerTitle, { color: colors.textPrimary }]}>
+            Mi Perfil y Ajustes
+          </Text>
+          <Text style={[styles.headerSubtitle, { color: colors.textMuted }]}>
+            Personalización, Modo Oscuro y cuentas bancarias
           </Text>
         </View>
 
         {/* Tarjeta de Perfil de Usuario */}
-        <View style={styles.profileCard}>
+        <View
+          style={[
+            styles.profileCard,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            },
+          ]}
+        >
           <TouchableOpacity onPress={handlePickAvatar} style={styles.avatarWrap}>
             {profile?.avatarUri ? (
               <Image source={{ uri: profile.avatarUri }} style={styles.avatarImg} />
             ) : (
-              <View style={styles.avatarPlaceholder}>
-                <Ionicons name="person" size={40} color="#3B82F6" />
+              <View
+                style={[
+                  styles.avatarPlaceholder,
+                  { backgroundColor: colors.primaryLight },
+                ]}
+              >
+                <Ionicons name="person" size={38} color={colors.primary} />
               </View>
             )}
-            <View style={styles.cameraIconBadge}>
-              <Ionicons name="camera" size={14} color="#FFFFFF" />
+            <View style={[styles.cameraIconBadge, { backgroundColor: colors.primary }]}>
+              <Ionicons name="camera" size={13} color="#FFFFFF" />
             </View>
           </TouchableOpacity>
 
           <View style={styles.profileInfo}>
             <View style={styles.nameRow}>
-              <Text style={styles.userName}>{profile?.name || 'Usuario'}</Text>
+              <Text style={[styles.userName, { color: colors.textPrimary }]}>
+                {profile?.name || 'Usuario'}
+              </Text>
               <TouchableOpacity
                 onPress={() => {
                   setName(profile?.name || '');
@@ -131,22 +152,88 @@ export const ProfileScreen = () => {
                 }}
                 style={styles.editBtn}
               >
-                <Ionicons name="pencil" size={14} color="#6366F1" />
+                <Ionicons name="pencil" size={14} color={colors.primary} />
               </TouchableOpacity>
             </View>
-            <Text style={styles.userEmail}>{profile?.email || 'usuario@gmail.com'}</Text>
+            <Text style={[styles.userEmail, { color: colors.textMuted }]}>
+              {profile?.email || 'usuario@gmail.com'}
+            </Text>
           </View>
         </View>
 
+        {/* Selector de Modo Claro / Modo Oscuro */}
+        <View
+          style={[
+            styles.themeCard,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            },
+          ]}
+        >
+          <View style={styles.themeLeft}>
+            <View
+              style={[
+                styles.themeIconWrap,
+                {
+                  backgroundColor: isDark
+                    ? 'rgba(251, 191, 36, 0.15)'
+                    : 'rgba(99, 102, 241, 0.15)',
+                },
+              ]}
+            >
+              <Ionicons
+                name={isDark ? 'moon' : 'sunny'}
+                size={20}
+                color={isDark ? '#FBBF24' : '#6366F1'}
+              />
+            </View>
+            <View>
+              <Text style={[styles.themeTitle, { color: colors.textPrimary }]}>
+                {isDark ? 'Modo Oscuro (Dark)' : 'Modo Claro (Light)'}
+              </Text>
+              <Text style={[styles.themeSub, { color: colors.textMuted }]}>
+                {isDark ? 'Tema nocturno de alto contraste' : 'Tema luminoso y limpio'}
+              </Text>
+            </View>
+          </View>
+
+          <Switch
+            value={isDark}
+            onValueChange={toggleTheme}
+            trackColor={{ false: '#CBD5E1', true: colors.primary }}
+            thumbColor={isDark ? '#F8FAFC' : '#FFFFFF'}
+          />
+        </View>
+
         {/* Vinculación con Google / Firebase */}
-        <View style={styles.sectionCard}>
+        <View
+          style={[
+            styles.sectionCard,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            },
+          ]}
+        >
           <View style={styles.sectionHeaderRow}>
-            <View style={styles.sectionIconWrap}>
+            <View
+              style={[
+                styles.sectionIconWrap,
+                {
+                  backgroundColor: isDark
+                    ? 'rgba(239, 68, 68, 0.18)'
+                    : '#FEE2E2',
+                },
+              ]}
+            >
               <Ionicons name="logo-google" size={18} color="#EA4335" />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.sectionTitle}>Cuenta de Google & Firebase</Text>
-              <Text style={styles.sectionSub}>
+              <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+                Cuenta de Google & Firebase
+              </Text>
+              <Text style={[styles.sectionSub, { color: colors.textMuted }]}>
                 Para compartir gastos en pareja y sincronización en la nube (Fase 2)
               </Text>
             </View>
@@ -155,7 +242,15 @@ export const ProfileScreen = () => {
           <TouchableOpacity
             style={[
               styles.googleBtn,
-              profile?.isGoogleLinked && styles.googleBtnLinked,
+              profile?.isGoogleLinked
+                ? {
+                    backgroundColor: colors.successLight,
+                    borderColor: colors.successBorder,
+                  }
+                : {
+                    backgroundColor: isDark ? 'rgba(239, 68, 68, 0.1)' : '#FEF2F2',
+                    borderColor: isDark ? '#7F1D1D' : '#FECACA',
+                  },
             ]}
             onPress={handleGoogleLink}
             activeOpacity={0.8}
@@ -163,12 +258,12 @@ export const ProfileScreen = () => {
             <Ionicons
               name={profile?.isGoogleLinked ? 'checkmark-circle' : 'logo-google'}
               size={18}
-              color={profile?.isGoogleLinked ? '#10B981' : '#EA4335'}
+              color={profile?.isGoogleLinked ? colors.success : '#EA4335'}
             />
             <Text
               style={[
                 styles.googleBtnText,
-                profile?.isGoogleLinked && styles.googleBtnTextLinked,
+                { color: profile?.isGoogleLinked ? colors.success : '#DC2626' },
               ]}
             >
               {profile?.isGoogleLinked
@@ -181,13 +276,15 @@ export const ProfileScreen = () => {
         {/* Billetera de Cuentas Bancarias */}
         <View style={styles.sectionHeader}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.sectionTitleText}>Billetera de Cuentas Bancarias</Text>
-            <Text style={styles.sectionSubText}>
-              Ordenadas por preferencia para recibir transferencias y recordatorios
+            <Text style={[styles.sectionTitleText, { color: colors.textPrimary }]}>
+              Billetera de Cuentas Bancarias
+            </Text>
+            <Text style={[styles.sectionSubText, { color: colors.textMuted }]}>
+              Ordenadas por preferencia para recibir transferencias
             </Text>
           </View>
           <TouchableOpacity
-            style={styles.addBankBtn}
+            style={[styles.addBankBtn, { backgroundColor: colors.primary }]}
             onPress={() => setShowAddBank(true)}
           >
             <Ionicons name="add" size={16} color="#FFFFFF" />
@@ -196,8 +293,16 @@ export const ProfileScreen = () => {
         </View>
 
         {bankAccounts.length === 0 ? (
-          <View style={styles.emptyBankCard}>
-            <Text style={styles.emptyBankText}>
+          <View
+            style={[
+              styles.emptyBankCard,
+              {
+                backgroundColor: colors.surfaceSubtle,
+                borderColor: colors.border,
+              },
+            ]}
+          >
+            <Text style={[styles.emptyBankText, { color: colors.textMuted }]}>
               No tienes cuentas bancarias registradas. Agrega una para copiar tus datos en 1 clic y compartirlos en WhatsApp.
             </Text>
           </View>
@@ -213,26 +318,37 @@ export const ProfileScreen = () => {
         )}
 
         {/* Opciones Adicionales */}
-        <View style={styles.optionsCard}>
-          <TouchableOpacity
-            style={styles.optionRow}
-            onPress={handleResetData}
-          >
+        <View
+          style={[
+            styles.optionsCard,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            },
+          ]}
+        >
+          <TouchableOpacity style={styles.optionRow} onPress={handleResetData}>
             <View style={styles.optionLeft}>
               <Ionicons name="refresh-circle-outline" size={22} color="#F59E0B" />
-              <Text style={styles.optionText}>Restablecer datos de prueba</Text>
+              <Text style={[styles.optionText, { color: colors.textPrimary }]}>
+                Restablecer datos de prueba
+              </Text>
             </View>
-            <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />
+            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
           </TouchableOpacity>
 
-          <View style={styles.optionDivider} />
+          <View style={[styles.optionDivider, { backgroundColor: colors.border }]} />
 
           <View style={styles.optionRow}>
             <View style={styles.optionLeft}>
-              <Ionicons name="phone-portrait-outline" size={22} color="#3B82F6" />
-              <Text style={styles.optionText}>Plataforma</Text>
+              <Ionicons name="phone-portrait-outline" size={22} color={colors.primary} />
+              <Text style={[styles.optionText, { color: colors.textPrimary }]}>
+                Plataforma
+              </Text>
             </View>
-            <Text style={styles.optionValue}>Android (React Native / Expo)</Text>
+            <Text style={[styles.optionValue, { color: colors.textMuted }]}>
+              Android (React Native / Expo)
+            </Text>
           </View>
         </View>
       </ScrollView>
@@ -240,24 +356,46 @@ export const ProfileScreen = () => {
       {/* Modal Editar Perfil */}
       <Modal visible={isEditingProfile} transparent animationType="fade">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Editar Perfil</Text>
+          <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
+              Editar Perfil
+            </Text>
 
-            <Text style={styles.inputLabel}>Tu Nombre</Text>
+            <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>
+              Tu Nombre
+            </Text>
             <TextInput
-              style={styles.modalInput}
+              style={[
+                styles.modalInput,
+                {
+                  color: colors.textPrimary,
+                  borderColor: colors.border,
+                  backgroundColor: colors.surfaceSubtle,
+                },
+              ]}
               value={name}
               onChangeText={setName}
               placeholder="Ej. Juan Pérez"
+              placeholderTextColor={colors.textMuted}
             />
 
-            <Text style={styles.inputLabel}>Tu Correo Electrónico</Text>
+            <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>
+              Tu Correo Electrónico
+            </Text>
             <TextInput
-              style={styles.modalInput}
+              style={[
+                styles.modalInput,
+                {
+                  color: colors.textPrimary,
+                  borderColor: colors.border,
+                  backgroundColor: colors.surfaceSubtle,
+                },
+              ]}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
               placeholder="usuario@gmail.com"
+              placeholderTextColor={colors.textMuted}
             />
 
             <View style={styles.modalButtons}>
@@ -265,10 +403,12 @@ export const ProfileScreen = () => {
                 style={styles.modalCancelBtn}
                 onPress={() => setIsEditingProfile(false)}
               >
-                <Text style={styles.modalCancelText}>Cancelar</Text>
+                <Text style={[styles.modalCancelText, { color: colors.textMuted }]}>
+                  Cancelar
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.modalSaveBtn}
+                style={[styles.modalSaveBtn, { backgroundColor: colors.primary }]}
                 onPress={handleSaveProfile}
               >
                 <Text style={styles.modalSaveText}>Guardar</Text>
@@ -291,7 +431,6 @@ export const ProfileScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -304,37 +443,34 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: '#1F2937',
+    letterSpacing: -0.4,
   },
   headerSubtitle: {
     fontSize: 12,
-    color: '#6B7280',
     marginTop: 2,
+    fontWeight: '500',
   },
   profileCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 18,
+    padding: 18,
+    borderRadius: 20,
     marginVertical: 10,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
-    gap: 14,
+    gap: 16,
   },
   avatarWrap: {
     position: 'relative',
   },
   avatarImg: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 68,
+    height: 68,
+    borderRadius: 34,
   },
   avatarPlaceholder: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#EFF6FF',
+    width: 68,
+    height: 68,
+    borderRadius: 34,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -342,8 +478,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: -2,
     right: -2,
-    backgroundColor: '#3B82F6',
-    padding: 4,
+    padding: 5,
     borderRadius: 12,
   },
   profileInfo: {
@@ -357,67 +492,82 @@ const styles = StyleSheet.create({
   userName: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#1F2937',
   },
   editBtn: {
     padding: 4,
   },
   userEmail: {
     fontSize: 13,
-    color: '#6B7280',
     marginTop: 2,
+    fontWeight: '500',
+  },
+  themeCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 18,
+    marginBottom: 12,
+    borderWidth: 1,
+  },
+  themeLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  themeIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  themeTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  themeSub: {
+    fontSize: 11,
+    marginTop: 1,
+    fontWeight: '500',
   },
   sectionCard: {
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 16,
+    padding: 18,
+    borderRadius: 20,
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
   },
   sectionHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    marginBottom: 12,
+    gap: 12,
+    marginBottom: 14,
   },
   sectionIconWrap: {
-    backgroundColor: '#FEE2E2',
-    padding: 8,
-    borderRadius: 10,
+    padding: 10,
+    borderRadius: 12,
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#1F2937',
+    fontWeight: '800',
   },
   sectionSub: {
     fontSize: 11,
-    color: '#6B7280',
-    marginTop: 1,
+    marginTop: 2,
+    fontWeight: '500',
   },
   googleBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FEF2F2',
     borderWidth: 1.5,
-    borderColor: '#FECACA',
-    paddingVertical: 10,
-    borderRadius: 12,
+    paddingVertical: 11,
+    borderRadius: 14,
     gap: 8,
-  },
-  googleBtnLinked: {
-    backgroundColor: '#ECFDF5',
-    borderColor: '#A7F3D0',
   },
   googleBtnText: {
     fontSize: 13,
-    fontWeight: '700',
-    color: '#DC2626',
-  },
-  googleBtnTextLinked: {
-    color: '#059669',
+    fontWeight: '800',
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -429,110 +579,97 @@ const styles = StyleSheet.create({
   sectionTitleText: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#1F2937',
+    letterSpacing: -0.3,
   },
   sectionSubText: {
     fontSize: 11,
-    color: '#6B7280',
     marginTop: 1,
+    fontWeight: '500',
   },
   addBankBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#4F46E5',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 12,
     gap: 4,
   },
   addBankBtnText: {
     color: '#FFFFFF',
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   emptyBankCard: {
-    backgroundColor: '#F8FAFC',
     borderWidth: 1.5,
-    borderColor: '#E2E8F0',
     borderStyle: 'dashed',
-    borderRadius: 14,
-    padding: 16,
+    borderRadius: 16,
+    padding: 18,
     marginBottom: 14,
   },
   emptyBankText: {
     fontSize: 12,
-    color: '#64748B',
     textAlign: 'center',
     lineHeight: 18,
   },
   optionsCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 12,
+    borderRadius: 18,
+    padding: 14,
     marginTop: 10,
     borderWidth: 1,
-    borderColor: '#F1F5F9',
   },
   optionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 10,
     paddingHorizontal: 4,
   },
   optionLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
   },
   optionText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
+    fontWeight: '700',
   },
   optionValue: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#6B7280',
   },
   optionDivider: {
     height: 1,
-    backgroundColor: '#F1F5F9',
     marginVertical: 4,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.65)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 20,
+    borderRadius: 24,
+    padding: 24,
     width: '100%',
     maxWidth: 340,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#1F2937',
     marginBottom: 14,
   },
   inputLabel: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#4B5563',
     marginBottom: 4,
     marginTop: 6,
   },
   modalInput: {
     borderWidth: 1.5,
-    borderColor: '#E5E7EB',
-    borderRadius: 10,
+    borderRadius: 12,
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 10,
     fontSize: 14,
     marginBottom: 8,
   },
@@ -540,24 +677,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'flex-end',
     gap: 10,
-    marginTop: 14,
+    marginTop: 16,
   },
   modalCancelBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingVertical: 9,
+    paddingHorizontal: 14,
   },
   modalCancelText: {
-    color: '#6B7280',
     fontWeight: '600',
   },
   modalSaveBtn: {
-    backgroundColor: '#3B82F6',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 10,
+    paddingVertical: 9,
+    paddingHorizontal: 18,
+    borderRadius: 12,
   },
   modalSaveText: {
     color: '#FFFFFF',
-    fontWeight: '700',
+    fontWeight: '800',
   },
 });

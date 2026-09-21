@@ -1,18 +1,21 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 
-export const ProgressBar = ({ progress = 0, color = '#10B981', height = 10, backgroundColor = '#E5E7EB' }) => {
-  // Asegurar que el porcentaje esté entre 0 y 100
+export const ProgressBar = ({ progress = 0, color, height = 8, backgroundColor }) => {
+  const { colors } = useTheme();
   const clamped = Math.min(100, Math.max(0, progress));
+  const fillColor = color || colors.primary;
+  const trackColor = backgroundColor || colors.surfaceSubtle;
 
   return (
-    <View style={[styles.track, { height, backgroundColor }]}>
+    <View style={[styles.track, { height, backgroundColor: trackColor }]}>
       <View
         style={[
           styles.fill,
           {
             width: `${clamped}%`,
-            backgroundColor: color,
+            backgroundColor: fillColor,
             height,
           },
         ]}
@@ -24,10 +27,10 @@ export const ProgressBar = ({ progress = 0, color = '#10B981', height = 10, back
 const styles = StyleSheet.create({
   track: {
     width: '100%',
-    borderRadius: 8,
+    borderRadius: 10,
     overflow: 'hidden',
   },
   fill: {
-    borderRadius: 8,
+    borderRadius: 10,
   },
 });

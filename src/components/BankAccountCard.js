@@ -8,8 +8,10 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
+import { useTheme } from '../context/ThemeContext';
 
 export const BankAccountCard = ({ account, onSetPrimary, onDelete }) => {
+  const { colors, isDark } = useTheme();
   const isPrimary = account.isPrimary;
 
   const copyToClipboard = async () => {
@@ -37,58 +39,111 @@ export const BankAccountCard = ({ account, onSetPrimary, onDelete }) => {
   };
 
   return (
-    <View style={[styles.card, isPrimary && styles.cardPrimary]}>
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: isPrimary
+            ? isDark
+              ? '#1E1B4B'
+              : '#F5F3FF'
+            : colors.surface,
+          borderColor: isPrimary ? colors.primary : colors.border,
+          shadowColor: colors.cardShadow,
+        },
+      ]}
+    >
       <View style={styles.header}>
         <View style={styles.headerLeft}>
           <View
             style={[
               styles.iconWrap,
-              { backgroundColor: isPrimary ? '#EEF2FF' : '#F3F4F6' },
+              {
+                backgroundColor: isPrimary
+                  ? colors.primary
+                  : colors.surfaceSubtle,
+              },
             ]}
           >
             <Ionicons
-              name="business-outline"
-              size={20}
-              color={isPrimary ? '#4F46E5' : '#4B5563'}
+              name="card"
+              size={18}
+              color={isPrimary ? '#FFFFFF' : colors.textSecondary}
             />
           </View>
           <View>
             <View style={styles.titleRow}>
-              <Text style={styles.bankName}>{account.bankName}</Text>
+              <Text style={[styles.bankName, { color: colors.textPrimary }]}>
+                {account.bankName}
+              </Text>
               {isPrimary && (
-                <View style={styles.primaryBadge}>
+                <View
+                  style={[
+                    styles.primaryBadge,
+                    {
+                      backgroundColor: isDark
+                        ? 'rgba(245, 158, 11, 0.2)'
+                        : '#FEF3C7',
+                    },
+                  ]}
+                >
                   <Text style={styles.primaryBadgeText}>⭐ Preferida #1</Text>
                 </View>
               )}
             </View>
-            <Text style={styles.accountType}>{account.accountType}</Text>
+            <Text style={[styles.accountType, { color: colors.textMuted }]}>
+              {account.accountType}
+            </Text>
           </View>
         </View>
 
         <TouchableOpacity onPress={handleDelete} style={styles.deleteBtn}>
-          <Ionicons name="trash-outline" size={16} color="#9CA3AF" />
+          <Ionicons name="trash-outline" size={16} color={colors.textMuted} />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.accountDetails}>
+      <View
+        style={[
+          styles.accountDetails,
+          {
+            backgroundColor: isDark ? 'rgba(0,0,0,0.25)' : colors.surfaceSubtle,
+          },
+        ]}
+      >
         <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>N° Cuenta:</Text>
-          <Text style={styles.detailValue}>{account.accountNumber}</Text>
+          <Text style={[styles.detailLabel, { color: colors.textMuted }]}>
+            N° Cuenta:
+          </Text>
+          <Text style={[styles.detailValue, { color: colors.textPrimary }]}>
+            {account.accountNumber}
+          </Text>
         </View>
         <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Titular:</Text>
-          <Text style={styles.detailValue}>{account.holderName}</Text>
+          <Text style={[styles.detailLabel, { color: colors.textMuted }]}>
+            Titular:
+          </Text>
+          <Text style={[styles.detailValue, { color: colors.textPrimary }]}>
+            {account.holderName}
+          </Text>
         </View>
         {account.rutOrId ? (
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>RUT / ID:</Text>
-            <Text style={styles.detailValue}>{account.rutOrId}</Text>
+            <Text style={[styles.detailLabel, { color: colors.textMuted }]}>
+              RUT / ID:
+            </Text>
+            <Text style={[styles.detailValue, { color: colors.textPrimary }]}>
+              {account.rutOrId}
+            </Text>
           </View>
         ) : null}
         {account.aliasOrCvu ? (
           <View style={styles.detailRow}>
-            <Text style={styles.detailLabel}>Alias / CVU:</Text>
-            <Text style={styles.detailValue}>{account.aliasOrCvu}</Text>
+            <Text style={[styles.detailLabel, { color: colors.textMuted }]}>
+              Alias / CVU:
+            </Text>
+            <Text style={[styles.detailValue, { color: colors.textPrimary }]}>
+              {account.aliasOrCvu}
+            </Text>
           </View>
         ) : null}
       </View>
@@ -99,15 +154,19 @@ export const BankAccountCard = ({ account, onSetPrimary, onDelete }) => {
             style={styles.setPrimaryBtn}
             onPress={() => onSetPrimary(account)}
           >
-            <Ionicons name="star-outline" size={14} color="#4F46E5" />
-            <Text style={styles.setPrimaryText}>Marcar como Principal</Text>
+            <Ionicons name="star-outline" size={14} color={colors.primary} />
+            <Text style={[styles.setPrimaryText, { color: colors.primary }]}>
+              Marcar Principal
+            </Text>
           </TouchableOpacity>
         ) : (
-          <Text style={styles.activeLabel}>Se usa para recordatorios de WhatsApp</Text>
+          <Text style={[styles.activeLabel, { color: colors.textMuted }]}>
+            Se envía automáticamente en WhatsApp
+          </Text>
         )}
 
         <TouchableOpacity
-          style={styles.copyBtn}
+          style={[styles.copyBtn, { backgroundColor: colors.primary }]}
           onPress={copyToClipboard}
           activeOpacity={0.8}
         >
@@ -121,21 +180,14 @@ export const BankAccountCard = ({ account, onSetPrimary, onDelete }) => {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: 20,
+    padding: 18,
+    marginBottom: 14,
     borderWidth: 1.5,
-    borderColor: '#F3F4F6',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
     elevation: 2,
-  },
-  cardPrimary: {
-    borderColor: '#C7D2FE',
-    backgroundColor: '#FAFAFF',
   },
   header: {
     flexDirection: 'row',
@@ -146,12 +198,12 @@ const styles = StyleSheet.create({
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
     flex: 1,
   },
   iconWrap: {
-    padding: 8,
-    borderRadius: 12,
+    padding: 10,
+    borderRadius: 14,
   },
   titleRow: {
     flexDirection: 'row',
@@ -160,34 +212,32 @@ const styles = StyleSheet.create({
   },
   bankName: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#1F2937',
+    fontWeight: '800',
+    letterSpacing: -0.3,
   },
   primaryBadge: {
-    backgroundColor: '#FEF3C7',
-    paddingHorizontal: 6,
+    paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 8,
   },
   primaryBadgeText: {
     fontSize: 10,
-    fontWeight: '700',
-    color: '#92400E',
+    fontWeight: '800',
+    color: '#F59E0B',
   },
   accountType: {
     fontSize: 12,
-    color: '#6B7280',
+    fontWeight: '500',
     marginTop: 1,
   },
   deleteBtn: {
     padding: 4,
   },
   accountDetails: {
-    backgroundColor: '#F8FAFC',
-    borderRadius: 10,
-    padding: 10,
-    marginBottom: 12,
-    gap: 4,
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 14,
+    gap: 5,
   },
   detailRow: {
     flexDirection: 'row',
@@ -195,12 +245,11 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: 12,
-    color: '#64748B',
+    fontWeight: '500',
   },
   detailValue: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#1E293B',
+    fontWeight: '700',
   },
   footer: {
     flexDirection: 'row',
@@ -214,27 +263,24 @@ const styles = StyleSheet.create({
   },
   setPrimaryText: {
     fontSize: 12,
-    fontWeight: '600',
-    color: '#4F46E5',
+    fontWeight: '700',
   },
   activeLabel: {
     fontSize: 11,
-    color: '#6B7280',
     fontStyle: 'italic',
     flex: 1,
   },
   copyBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#3B82F6',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    gap: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 12,
+    gap: 5,
   },
   copyBtnText: {
     color: '#FFFFFF',
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
   },
 });

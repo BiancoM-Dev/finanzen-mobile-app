@@ -9,6 +9,7 @@ import {
   TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTheme } from '../context/ThemeContext';
 import { formatCurrency, parseCurrencyInput } from '../utils/currencyFormatter';
 import { sendFriendlyWhatsAppReminder } from '../utils/whatsappHelper';
 import { useFinance } from '../context/FinanceContext';
@@ -16,6 +17,7 @@ import { SocialDebtType } from '../models/types';
 import { ReceiptViewerModal } from './Modals/ReceiptViewerModal';
 
 export const SocialDebtCard = ({ item, onPay, onDelete }) => {
+  const { colors, isDark } = useTheme();
   const { primaryBankAccount } = useFinance();
   const [showPayModal, setShowPayModal] = useState(false);
   const [payAmountText, setPayAmountText] = useState('');
@@ -58,43 +60,71 @@ export const SocialDebtCard = ({ item, onPay, onDelete }) => {
   };
 
   return (
-    <View style={styles.card}>
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+          shadowColor: colors.cardShadow,
+        },
+      ]}
+    >
       <View style={styles.topRow}>
         <View style={styles.personWrap}>
           <View
             style={[
               styles.avatarWrap,
-              { backgroundColor: isTheyOweMe ? '#ECFDF5' : '#FEF2F2' },
+              {
+                backgroundColor: isTheyOweMe ? colors.successLight : colors.dangerLight,
+              },
             ]}
           >
             <Ionicons
-              name={isTheyOweMe ? 'arrow-down-outline' : 'arrow-up-outline'}
+              name={isTheyOweMe ? 'arrow-down' : 'arrow-up'}
               size={18}
-              color={isTheyOweMe ? '#10B981' : '#EF4444'}
+              color={isTheyOweMe ? colors.success : colors.danger}
             />
           </View>
           <View>
-            <Text style={styles.personName}>{item.personName}</Text>
-            <Text style={styles.typeLabel}>
+            <Text style={[styles.personName, { color: colors.textPrimary }]}>
+              {item.personName}
+            </Text>
+            <Text style={[styles.typeLabel, { color: colors.textMuted }]}>
               {isTheyOweMe ? 'Me debe' : 'Le debo'} • {item.date}
             </Text>
           </View>
         </View>
 
         <TouchableOpacity onPress={handleDelete} style={styles.deleteBtn}>
-          <Ionicons name="trash-outline" size={16} color="#9CA3AF" />
+          <Ionicons name="trash-outline" size={16} color={colors.textMuted} />
         </TouchableOpacity>
       </View>
 
-      <Text style={styles.conceptText}>{item.concept}</Text>
+      <Text
+        style={[
+          styles.conceptText,
+          { backgroundColor: colors.surfaceSubtle, color: colors.textSecondary },
+        ]}
+      >
+        {item.concept}
+      </Text>
 
       <View style={styles.amountBox}>
         <View>
-          <Text style={styles.amountLabel}>Saldo pendiente</Text>
+          <Text style={[styles.amountLabel, { color: colors.textMuted }]}>
+            Saldo pendiente
+          </Text>
           <Text
             style={[
               styles.remainingAmount,
-              { color: isPaid ? '#10B981' : isTheyOweMe ? '#059669' : '#DC2626' },
+              {
+                color: isPaid
+                  ? colors.success
+                  : isTheyOweMe
+                  ? colors.success
+                  : colors.danger,
+              },
             ]}
           >
             {isPaid ? '¡Saldado!' : formatCurrency(remaining)}
@@ -103,8 +133,10 @@ export const SocialDebtCard = ({ item, onPay, onDelete }) => {
 
         {item.paidAmount > 0 && !isPaid && (
           <View style={{ alignItems: 'flex-end' }}>
-            <Text style={styles.amountLabel}>Abonado</Text>
-            <Text style={styles.paidSub}>
+            <Text style={[styles.amountLabel, { color: colors.textMuted }]}>
+              Abonado
+            </Text>
+            <Text style={[styles.paidSub, { color: colors.textSecondary }]}>
               {formatCurrency(item.paidAmount)} de {formatCurrency(item.totalAmount)}
             </Text>
           </View>
@@ -126,14 +158,20 @@ export const SocialDebtCard = ({ item, onPay, onDelete }) => {
 
         {!isPaid && (
           <TouchableOpacity
-            style={styles.payBtn}
+            style={[
+              styles.payBtn,
+              {
+                backgroundColor: colors.primaryLight,
+                borderColor: colors.border,
+              },
+            ]}
             onPress={() => {
               setPayAmountText(remaining.toString());
               setShowPayModal(true);
             }}
           >
-            <Ionicons name="checkmark-done" size={16} color="#3B82F6" />
-            <Text style={styles.payBtnText}>
+            <Ionicons name="checkmark-done" size={16} color={colors.primary} />
+            <Text style={[styles.payBtnText, { color: colors.primary }]}>
               {isTheyOweMe ? 'Registrar Abono' : 'Pagar'}
             </Text>
           </TouchableOpacity>
@@ -143,18 +181,26 @@ export const SocialDebtCard = ({ item, onPay, onDelete }) => {
       {/* Modal para registrar abono/pago */}
       <Modal visible={showPayModal} transparent animationType="fade">
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>
+          <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
+            <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
               {isTheyOweMe ? '¿Cuánto te transfirieron?' : '¿Cuánto vas a pagar?'}
             </Text>
-            <Text style={styles.modalSub}>
+            <Text style={[styles.modalSub, { color: colors.textMuted }]}>
               {item.personName} - {item.concept}
             </Text>
 
-            <View style={styles.modalInputWrap}>
-              <Text style={styles.modalPrefix}>$</Text>
+            <View
+              style={[
+                styles.modalInputWrap,
+                {
+                  borderColor: colors.border,
+                  backgroundColor: colors.surfaceSubtle,
+                },
+              ]}
+            >
+              <Text style={[styles.modalPrefix, { color: colors.textSecondary }]}>$</Text>
               <TextInput
-                style={styles.modalInput}
+                style={[styles.modalInput, { color: colors.textPrimary }]}
                 keyboardType="numeric"
                 value={payAmountText}
                 onChangeText={setPayAmountText}
@@ -166,10 +212,12 @@ export const SocialDebtCard = ({ item, onPay, onDelete }) => {
                 style={styles.modalCancel}
                 onPress={() => setShowPayModal(false)}
               >
-                <Text style={styles.modalCancelText}>Cancelar</Text>
+                <Text style={[styles.modalCancelText, { color: colors.textMuted }]}>
+                  Cancelar
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={styles.modalConfirm}
+                style={[styles.modalConfirm, { backgroundColor: colors.primary }]}
                 onPress={handleConfirmPay}
               >
                 <Text style={styles.modalConfirmText}>Confirmar</Text>
@@ -191,75 +239,70 @@ export const SocialDebtCard = ({ item, onPay, onDelete }) => {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: 20,
+    padding: 18,
+    marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#F3F4F6',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
     elevation: 2,
   },
   topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   personWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
   },
   avatarWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   personName: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#1F2937',
+    fontSize: 16,
+    fontWeight: '800',
   },
   typeLabel: {
     fontSize: 11,
-    color: '#6B7280',
+    fontWeight: '500',
+    marginTop: 1,
   },
   deleteBtn: {
     padding: 4,
   },
   conceptText: {
     fontSize: 13,
-    color: '#4B5563',
-    marginBottom: 10,
-    backgroundColor: '#F9FAFB',
-    padding: 8,
-    borderRadius: 8,
+    marginBottom: 12,
+    padding: 10,
+    borderRadius: 10,
+    fontWeight: '500',
   },
   amountBox: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 14,
   },
   amountLabel: {
     fontSize: 11,
-    color: '#6B7280',
+    fontWeight: '600',
   },
   remainingAmount: {
-    fontSize: 18,
-    fontWeight: '800',
+    fontSize: 20,
+    fontWeight: '900',
     marginTop: 2,
   },
   paidSub: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#6B7280',
     marginTop: 2,
   },
   actionsRow: {
@@ -271,78 +314,69 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#25D366',
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 12,
     gap: 6,
   },
   whatsAppBtnText: {
     color: '#FFFFFF',
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   payBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EFF6FF',
     borderWidth: 1,
-    borderColor: '#BFDBFE',
     paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 10,
-    gap: 4,
+    paddingVertical: 8,
+    borderRadius: 12,
+    gap: 5,
   },
   payBtnText: {
-    color: '#1D4ED8',
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 18,
-    padding: 20,
+    borderRadius: 22,
+    padding: 22,
     width: '100%',
     maxWidth: 340,
   },
   modalTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#1F2937',
+    fontSize: 17,
+    fontWeight: '800',
   },
   modalSub: {
     fontSize: 12,
-    color: '#6B7280',
     marginTop: 2,
-    marginBottom: 14,
+    marginBottom: 16,
   },
   modalInputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: '#E5E7EB',
-    borderRadius: 12,
+    borderRadius: 14,
     paddingHorizontal: 12,
     marginBottom: 16,
   },
   modalPrefix: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#4B5563',
+    fontWeight: '800',
     marginRight: 6,
   },
   modalInput: {
     flex: 1,
     fontSize: 18,
-    fontWeight: '700',
-    color: '#1F2937',
-    paddingVertical: 8,
+    fontWeight: '800',
+    paddingVertical: 10,
   },
   modalButtons: {
     flexDirection: 'row',
@@ -354,17 +388,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   modalCancelText: {
-    color: '#6B7280',
     fontWeight: '600',
   },
   modalConfirm: {
-    backgroundColor: '#3B82F6',
-    paddingVertical: 8,
-    paddingHorizontal: 14,
+    paddingVertical: 9,
+    paddingHorizontal: 16,
     borderRadius: 10,
   },
   modalConfirmText: {
     color: '#FFFFFF',
-    fontWeight: '700',
+    fontWeight: '800',
   },
 });
