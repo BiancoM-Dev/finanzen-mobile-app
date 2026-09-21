@@ -11,6 +11,7 @@ import {
   Modal,
   TextInput,
   Switch,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
@@ -18,6 +19,8 @@ import { useFinance } from '../context/FinanceContext';
 import { useTheme } from '../context/ThemeContext';
 import { BankAccountCard } from '../components/BankAccountCard';
 import { AddBankAccountModal } from '../components/Modals/AddBankAccountModal';
+import { AuthModal } from '../components/Modals/AuthModal';
+import { HouseholdModal } from '../components/Modals/HouseholdModal';
 
 export const ProfileScreen = () => {
   const {
@@ -27,11 +30,18 @@ export const ProfileScreen = () => {
     saveBankAccount,
     deleteBankAccount,
     resetData,
+    currentUser,
+    household,
+    syncStatus,
+    signOutUser,
+    setHouseholdData,
   } = useFinance();
 
   const { colors, isDark, toggleTheme } = useTheme();
 
   const [showAddBank, setShowAddBank] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showHouseholdModal, setShowHouseholdModal] = useState(false);
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [name, setName] = useState(profile?.name || '');
   const [email, setEmail] = useState(profile?.email || '');
@@ -60,28 +70,31 @@ export const ProfileScreen = () => {
     setIsEditingProfile(false);
   };
 
-  const handleGoogleLink = () => {
-    if (profile?.isGoogleLinked) {
-      Alert.alert(
-        'Cuenta de Google Vinculada',
-        'Tu sesión está lista para sincronizar con Firebase Cloud Firestore en la Fase 2.'
-      );
-    } else {
-      Alert.alert(
-        'Vincular con Google',
-        'En la Fase 2, esta acción abrirá Google Sign-In mediante Firebase Auth para habilitar gastos compartidos en pareja. ¿Deseas marcar tu cuenta como vinculada de prueba?',
-        [
-          { text: 'Cancelar', style: 'cancel' },
-          {
-            text: 'Vincular Ahora',
-            onPress: () => {
-              updateProfile({ isGoogleLinked: true, email: 'tu.cuenta.google@gmail.com' });
-              Alert.alert('¡Excelente!', 'Perfil preparado con credencial de Google para Firebase.');
-            },
-          },
-        ]
-      );
-    }
+  const handleSignOutConfirm = () => {
+    Alert.alert(
+      'Cerrar Sesión',
+      '¿Deseas cerrar tu sesión en la nube? Tus datos locales se conservarán en este dispositivo.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Cerrar Sesión',
+          style: 'destructive',
+          onPress: signOutUser,
+        },
+      ]
+    );
+  };
+
+  const handleShareHousehold = () => {
+    if (!household?.inviteCode) return;
+    const msg = `¡Hola! 😊 Te invito a compartir las cuentas del hogar en FinanZen.\n\n` +
+      `Descarga la app y únete a *${household.name}* usando este código:\n\n` +
+      `👉 *${household.inviteCode}*\n\n` +
+      `¡Así podremos llevar el control de los gastos y transferencias en tiempo real!`;
+    const url = `whatsapp://send?text=${encodeURIComponent(msg)}`;
+    Linking.openURL(url).catch(() => {
+      Linking.openURL(`https://wa.me/?text=${encodeURIComponent(msg)}`);
+    });
   };
 
   const handleResetData = () => {
@@ -206,7 +219,7 @@ export const ProfileScreen = () => {
           />
         </View>
 
-        {/* Vinculación con Google / Firebase */}
+        {/* Tarjeta 1: Cuenta en la Nube (Firebase Auth) */}
         <View
           style={[
             styles.sectionCard,
@@ -221,56 +234,258 @@ export const ProfileScreen = () => {
               style={[
                 styles.sectionIconWrap,
                 {
-                  backgroundColor: isDark
-                    ? 'rgba(239, 68, 68, 0.18)'
-                    : '#FEE2E2',
+                  backgroundColor: currentUser
+                    ? 'rgba(52, 211, 153, 0.18)'
+                    : 'rgba(99, 102, 241, 0.18)',
                 },
               ]}
             >
-              <Ionicons name="logo-google" size={18} color="#EA4335" />
+              <Ionicons
+                name={currentUser ? 'cloud-done' : 'cloud-offline-outline'}
+                size={20}
+                color={currentUser ? colors.success : colors.primary}
+              />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
-                Cuenta de Google & Firebase
+                {currentUser ? 'Cuenta en la Nube Conectada ☁️' : 'Modo Local (Sin Nube)'}
               </Text>
               <Text style={[styles.sectionSub, { color: colors.textMuted }]}>
-                Para compartir gastos en pareja y sincronización en la nube (Fase 2)
+                {currentUser
+                  ? `Sincronizado: ${currentUser.email || 'Usuario'}`
+                  : 'Inicia sesión para sincronizar tus finanzas y compartir gastos'}
               </Text>
             </View>
           </View>
 
-          <TouchableOpacity
-            style={[
-              styles.googleBtn,
-              profile?.isGoogleLinked
-                ? {
-                    backgroundColor: colors.successLight,
-                    borderColor: colors.successBorder,
-                  }
-                : {
-                    backgroundColor: isDark ? 'rgba(239, 68, 68, 0.1)' : '#FEF2F2',
-                    borderColor: isDark ? '#7F1D1D' : '#FECACA',
+          {currentUser ? (
+            <View style={styles.connectedAccountWrap}>
+              <View
+                style={[
+                  styles.syncStatusBadge,
+                  {
+                    backgroundColor:
+                      syncStatus === 'synced'
+                        ? colors.successLight
+                        : syncStatus === 'syncing'
+                        ? colors.warningLight
+                        : colors.surfaceSubtle,
                   },
-            ]}
-            onPress={handleGoogleLink}
-            activeOpacity={0.8}
-          >
-            <Ionicons
-              name={profile?.isGoogleLinked ? 'checkmark-circle' : 'logo-google'}
-              size={18}
-              color={profile?.isGoogleLinked ? colors.success : '#EA4335'}
-            />
-            <Text
+                ]}
+              >
+                <Ionicons
+                  name={syncStatus === 'synced' ? 'checkmark-circle' : 'sync-outline'}
+                  size={14}
+                  color={syncStatus === 'synced' ? colors.success : colors.warning}
+                />
+                <Text
+                  style={[
+                    styles.syncStatusText,
+                    {
+                      color:
+                        syncStatus === 'synced' ? colors.success : colors.warningText,
+                    },
+                  ]}
+                >
+                  {syncStatus === 'synced'
+                    ? 'Datos sincronizados en tiempo real'
+                    : 'Sincronizando cambios...'}
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                style={[
+                  styles.signOutBtn,
+                  { borderColor: isDark ? '#7F1D1D' : '#FECACA' },
+                ]}
+                onPress={handleSignOutConfirm}
+              >
+                <Ionicons name="log-out-outline" size={16} color="#EF4444" />
+                <Text style={styles.signOutBtnText}>Cerrar Sesión</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={[styles.primaryActionBtn, { backgroundColor: colors.primary }]}
+              onPress={() => setShowAuthModal(true)}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="log-in-outline" size={18} color="#FFFFFF" />
+              <Text style={styles.primaryActionBtnText}>
+                Iniciar Sesión / Crear Cuenta
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Tarjeta 2: Hogar Compartido (Pareja / Convivientes) */}
+        <View
+          style={[
+            styles.sectionCard,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+            },
+          ]}
+        >
+          <View style={styles.sectionHeaderRow}>
+            <View
               style={[
-                styles.googleBtnText,
-                { color: profile?.isGoogleLinked ? colors.success : '#DC2626' },
+                styles.sectionIconWrap,
+                {
+                  backgroundColor: household
+                    ? 'rgba(59, 130, 246, 0.18)'
+                    : isDark
+                    ? 'rgba(245, 158, 11, 0.18)'
+                    : '#FEF3C7',
+                },
               ]}
             >
-              {profile?.isGoogleLinked
-                ? 'Vinculado con Google (Listo para Firebase)'
-                : 'Conectar con Cuenta de Google'}
-            </Text>
-          </TouchableOpacity>
+              <Ionicons
+                name="home"
+                size={20}
+                color={household ? colors.primary : '#F59E0B'}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+                Hogar Compartido 🏡
+              </Text>
+              <Text style={[styles.sectionSub, { color: colors.textMuted }]}>
+                {household
+                  ? `Espacio activo: ${household.name}`
+                  : 'Cuentas en pareja y finanzas familiares en vivo'}
+              </Text>
+            </View>
+          </View>
+
+          {household ? (
+            <View>
+              {/* Resumen del hogar actual */}
+              <View
+                style={[
+                  styles.householdSummaryBox,
+                  {
+                    backgroundColor: colors.surfaceSubtle,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
+                <View style={styles.householdSummaryTop}>
+                  <Text
+                    style={[styles.householdNameText, { color: colors.textPrimary }]}
+                  >
+                    {household.name}
+                  </Text>
+                  <View
+                    style={[
+                      styles.membersBadge,
+                      { backgroundColor: colors.primaryLight },
+                    ]}
+                  >
+                    <Ionicons name="people" size={12} color={colors.primary} />
+                    <Text
+                      style={[styles.membersBadgeText, { color: colors.primary }]}
+                    >
+                      {household.members?.length || 1} miembro(s)
+                    </Text>
+                  </View>
+                </View>
+
+                {/* Código de invitación */}
+                <View style={styles.codeSnippetRow}>
+                  <Text style={[styles.codeSnippetLabel, { color: colors.textMuted }]}>
+                    Código:
+                  </Text>
+                  <Text
+                    style={[styles.codeSnippetVal, { color: colors.primary }]}
+                  >
+                    {household.inviteCode}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Botones de acción del hogar */}
+              <View style={styles.householdActionsRow}>
+                <TouchableOpacity
+                  style={[
+                    styles.householdSecondaryBtn,
+                    { borderColor: colors.border, backgroundColor: colors.surface },
+                  ]}
+                  onPress={() => setShowHouseholdModal(true)}
+                >
+                  <Ionicons name="settings-outline" size={16} color={colors.textPrimary} />
+                  <Text
+                    style={[
+                      styles.householdSecondaryBtnText,
+                      { color: colors.textPrimary },
+                    ]}
+                  >
+                    Ver Hogar
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.whatsAppBtn}
+                  onPress={handleShareHousehold}
+                >
+                  <Ionicons name="logo-whatsapp" size={16} color="#FFFFFF" />
+                  <Text style={styles.whatsAppBtnText}>Invitar Pareja</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            <View>
+              <Text
+                style={[
+                  styles.householdPromoText,
+                  { color: colors.textSecondary },
+                ]}
+              >
+                Divide el arriendo, la luz, el agua y las compras mensuales con tu pareja. Ambos podrán subir comprobantes y marcar pagos en tiempo real.
+              </Text>
+              <TouchableOpacity
+                style={[
+                  styles.primaryActionBtn,
+                  {
+                    backgroundColor: currentUser ? '#3B82F6' : colors.surfaceSubtle,
+                    borderColor: colors.border,
+                    borderWidth: currentUser ? 0 : 1,
+                  },
+                ]}
+                onPress={() => {
+                  if (currentUser) {
+                    setShowHouseholdModal(true);
+                  } else {
+                    Alert.alert(
+                      'Iniciar Sesión Requerido',
+                      'Para usar el Hogar Compartido primero inicia sesión con tu cuenta.',
+                      [
+                        { text: 'Cancelar', style: 'cancel' },
+                        { text: 'Iniciar Sesión', onPress: () => setShowAuthModal(true) },
+                      ]
+                    );
+                  }
+                }}
+              >
+                <Ionicons
+                  name="home"
+                  size={18}
+                  color={currentUser ? '#FFFFFF' : colors.textPrimary}
+                />
+                <Text
+                  style={[
+                    styles.primaryActionBtnText,
+                    !currentUser && { color: colors.textPrimary },
+                  ]}
+                >
+                  {currentUser
+                    ? 'Crear o Unirme a un Hogar 🏡'
+                    : 'Iniciar Sesión para Activar'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
 
         {/* Billetera de Cuentas Bancarias */}
@@ -423,6 +638,22 @@ export const ProfileScreen = () => {
         visible={showAddBank}
         onClose={() => setShowAddBank(false)}
         onSave={saveBankAccount}
+      />
+
+      {/* Modal Autenticación y Registro */}
+      <AuthModal
+        visible={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onAuthSuccess={() => {}}
+      />
+
+      {/* Modal Hogar Compartido y Pareja */}
+      <HouseholdModal
+        visible={showHouseholdModal}
+        household={household}
+        currentUser={currentUser}
+        onClose={() => setShowHouseholdModal(false)}
+        onHouseholdUpdated={(updatedH) => setHouseholdData(updatedH)}
       />
     </SafeAreaView>
   );
@@ -693,6 +924,129 @@ const styles = StyleSheet.create({
   },
   modalSaveText: {
     color: '#FFFFFF',
+    fontWeight: '800',
+  },
+  connectedAccountWrap: {
+    gap: 12,
+  },
+  syncStatusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+  },
+  syncStatusText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  signOutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    borderWidth: 1.5,
+    borderRadius: 14,
+    paddingVertical: 10,
+  },
+  signOutBtnText: {
+    color: '#EF4444',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  primaryActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    borderRadius: 14,
+    gap: 8,
+    marginTop: 4,
+  },
+  primaryActionBtnText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  householdPromoText: {
+    fontSize: 12,
+    lineHeight: 18,
+    marginBottom: 12,
+  },
+  householdSummaryBox: {
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  householdSummaryTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  householdNameText: {
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  membersBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  membersBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  codeSnippetRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 8,
+  },
+  codeSnippetLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  codeSnippetVal: {
+    fontSize: 14,
+    fontWeight: '900',
+    letterSpacing: 1,
+  },
+  householdActionsRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  householdSecondaryBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 6,
+  },
+  householdSecondaryBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  whatsAppBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#25D366',
+    paddingVertical: 10,
+    borderRadius: 12,
+    gap: 6,
+  },
+  whatsAppBtnText: {
+    color: '#FFFFFF',
+    fontSize: 12,
     fontWeight: '800',
   },
 });

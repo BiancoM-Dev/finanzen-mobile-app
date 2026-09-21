@@ -65,9 +65,17 @@ export const BillCard = ({ bill, onTogglePaid, onToggleSplitMember, onDelete }) 
             <Ionicons name="flash-outline" size={20} color="#F59E0B" />
           </View>
           <View>
-            <Text style={[styles.title, { color: colors.textPrimary }]}>
-              {bill.name}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Text style={[styles.title, { color: colors.textPrimary }]}>
+                {bill.name}
+              </Text>
+              {bill.isHouseholdBill && (
+                <View style={styles.householdBadge}>
+                  <Ionicons name="home" size={10} color="#3B82F6" />
+                  <Text style={styles.householdBadgeText}>Hogar</Text>
+                </View>
+              )}
+            </View>
             <Text style={[styles.category, { color: colors.textMuted }]}>
               {bill.category}
             </Text>
@@ -276,6 +284,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '800',
     letterSpacing: -0.3,
+  },
+  householdBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: '#EFF6FF',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  householdBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#3B82F6',
   },
   category: {
     fontSize: 11,

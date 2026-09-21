@@ -1,27 +1,46 @@
-/**
- * Configuración y Adaptador de Firebase para FinanZen (Fase 2)
- * 
- * Para activar la sincronización en la nube y compartir gastos en pareja:
- * 1. Crea un proyecto en Firebase Console (https://console.firebase.google.com).
- * 2. Habilita 'Authentication' (con Proveedor Google y Correo/Contraseña).
- * 3. Habilita 'Cloud Firestore' (en modo producción o prueba).
- * 4. Pega tus credenciales en el objeto firebaseConfig de abajo.
- * 
- * Toda la estructura de datos en 'storageService.js' fue diseñada para mapearse
- * 1:1 con las colecciones de Firestore:
- * - /users/{userId} -> Perfil y cuentas bancarias
- * - /users/{userId}/debts -> Deudas formales
- * - /users/{userId}/goals -> Metas de ahorro
- * - /shared_groups/{groupId}/bills -> Cuentas del hogar compartidas entre parejas
- */
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { initializeAuth, getReactNativePersistence } from 'firebase/auth';
+import { getFirestore, initializeFirestore, persistentLocalCache } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const firebaseConfig = {
-  apiKey: "TU_API_KEY_DE_FIREBASE",
-  authDomain: "tu-proyecto.firebaseapp.com",
-  projectId: "tu-proyecto",
-  storageBucket: "tu-proyecto.appspot.com",
-  messagingSenderId: "1234567890",
-  appId: "1:1234567890:android:abcdef"
+  projectId: "finanzen-app-bm",
+  appId: "1:888613225131:web:4b517e70b3f07d84ec6dee",
+  storageBucket: "finanzen-app-bm.firebasestorage.app",
+  apiKey: "AIzaSyAx3lJo9mkMpZ3vakmKCV07nMTCtfFSGz8",
+  authDomain: "finanzen-app-bm.firebaseapp.com",
+  messagingSenderId: "888613225131"
 };
 
-export const FIREBASE_READY = false; // Cambiar a true cuando se instale firebase
+// Inicializar Firebase App (singleton)
+export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+
+// Inicializar Auth con persistencia en AsyncStorage para React Native
+let authInstance;
+try {
+  authInstance = initializeAuth(app, {
+    persistence: getReactNativePersistence(AsyncStorage),
+  });
+} catch (e) {
+  // Si ya estaba inicializado, obtener instancia existente
+  const { getAuth } = require('firebase/auth');
+  authInstance = getAuth(app);
+}
+export const auth = authInstance;
+
+// Inicializar Cloud Firestore con soporte offline local
+let firestoreInstance;
+try {
+  firestoreInstance = initializeFirestore(app, {
+    localCache: persistentLocalCache(),
+  });
+} catch (e) {
+  firestoreInstance = getFirestore(app);
+}
+export const db = firestoreInstance;
+
+// Inicializar Cloud Storage
+export const storage = getStorage(app);
+
+export const FIREBASE_READY = true;

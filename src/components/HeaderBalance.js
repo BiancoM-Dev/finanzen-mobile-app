@@ -20,6 +20,9 @@ export const HeaderBalance = ({ onOpenProfile }) => {
     availableMonthlyBalance,
     upcomingAlerts,
     updateMonthlyIncome,
+    currentUser,
+    household,
+    syncStatus,
   } = useFinance();
 
   const { colors, isDark, toggleTheme } = useTheme();
@@ -40,11 +43,79 @@ export const HeaderBalance = ({ onOpenProfile }) => {
       <View style={styles.topRow}>
         <View style={{ flex: 1 }}>
           <Text style={[styles.greetingText, { color: colors.textPrimary }]}>
-            Hola, {profile?.name?.split(' ')[0] || 'Bienvenido'} 👋
+            Hola, {currentUser?.displayName?.split(' ')[0] || profile?.name?.split(' ')[0] || 'Bienvenido'} 👋
           </Text>
-          <Text style={[styles.subGreetingText, { color: colors.textMuted }]}>
-            Control financiero en tiempo real
-          </Text>
+          <TouchableOpacity
+            style={styles.syncChipRow}
+            onPress={onOpenProfile}
+            activeOpacity={0.7}
+          >
+            {household ? (
+              <View
+                style={[
+                  styles.statusBadge,
+                  {
+                    backgroundColor: isDark
+                      ? 'rgba(59, 130, 246, 0.2)'
+                      : '#DBEAFE',
+                  },
+                ]}
+              >
+                <Ionicons name="home" size={11} color="#3B82F6" />
+                <Text style={[styles.statusBadgeText, { color: '#3B82F6' }]}>
+                  {household.name}
+                </Text>
+              </View>
+            ) : currentUser ? (
+              <View
+                style={[
+                  styles.statusBadge,
+                  {
+                    backgroundColor:
+                      syncStatus === 'synced'
+                        ? isDark
+                          ? 'rgba(52, 211, 153, 0.2)'
+                          : '#D1FAE5'
+                        : isDark
+                        ? 'rgba(245, 158, 11, 0.2)'
+                        : '#FEF3C7',
+                  },
+                ]}
+              >
+                <Ionicons
+                  name={syncStatus === 'synced' ? 'cloud-done' : 'sync'}
+                  size={11}
+                  color={syncStatus === 'synced' ? '#10B981' : '#F59E0B'}
+                />
+                <Text
+                  style={[
+                    styles.statusBadgeText,
+                    {
+                      color: syncStatus === 'synced' ? '#10B981' : '#F59E0B',
+                    },
+                  ]}
+                >
+                  {syncStatus === 'synced' ? 'Cloud Sync' : 'Sincronizando...'}
+                </Text>
+              </View>
+            ) : (
+              <View
+                style={[
+                  styles.statusBadge,
+                  {
+                    backgroundColor: colors.surfaceSubtle,
+                    borderColor: colors.border,
+                    borderWidth: 1,
+                  },
+                ]}
+              >
+                <Ionicons name="cloud-offline-outline" size={11} color={colors.textMuted} />
+                <Text style={[styles.statusBadgeText, { color: colors.textMuted }]}>
+                  Modo Local
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
         </View>
 
         <View style={styles.topActions}>
@@ -256,10 +327,22 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: -0.5,
   },
-  subGreetingText: {
-    fontSize: 12,
-    marginTop: 2,
-    fontWeight: '500',
+  syncChipRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  statusBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
   },
   topActions: {
     flexDirection: 'row',
