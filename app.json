@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "finanzen-app",
+    "name": "FinanZen",
     "slug": "finanzen-app",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,13 +10,29 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.finanzen.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
-      }
+      },
+      "permissions": [
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
     },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "FinanZen necesita acceso a tus fotos para guardar comprobantes de pago e imágenes de tus metas.",
+          "cameraPermission": "FinanZen necesita acceso a tu cámara para capturar fotos de comprobantes de pago y metas."
+        }
+      ],
+      "expo-font"
+    ],
     "web": {
       "favicon": "./assets/favicon.png"
     }

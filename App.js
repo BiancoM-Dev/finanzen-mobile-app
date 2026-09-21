@@ -1,20 +1,41 @@
+import React from 'react';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { FinanceProvider, useFinance } from './src/context/FinanceContext';
+import { AppNavigator } from './src/navigation/AppNavigator';
+
+function MainApp() {
+  const { loading } = useFinance();
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#3B82F6" />
+      </View>
+    );
+  }
+
+  return (
+    <>
+      <StatusBar style="dark" />
+      <AppNavigator />
+    </>
+  );
+}
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <FinanceProvider>
+      <MainApp />
+    </FinanceProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  loadingContainer: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
     justifyContent: 'center',
+    alignItems: 'center',
   },
 });
