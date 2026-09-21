@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFinance } from '../context/FinanceContext';
@@ -41,7 +40,7 @@ export const DashboardScreen = ({ onNavigateTab }) => {
   const [showAddSocial, setShowAddSocial] = useState(false);
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+    <View style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -364,7 +363,7 @@ export const DashboardScreen = ({ onNavigateTab }) => {
         onClose={() => setShowAddSocial(false)}
         onSave={saveSocialDebt}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

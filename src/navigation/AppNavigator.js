@@ -4,9 +4,9 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
   Platform,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { DashboardScreen } from '../screens/DashboardScreen';
 import { FixedExpensesScreen } from '../screens/FixedExpensesScreen';
@@ -17,6 +17,7 @@ import { useFinance } from '../context/FinanceContext';
 import { useTheme } from '../context/ThemeContext';
 
 export const AppNavigator = () => {
+  const insets = useSafeAreaInsets();
   const [currentTab, setCurrentTab] = useState('dashboard');
   const { totalOwedToMe, upcomingAlerts } = useFinance();
   const { colors, isDark } = useTheme();
@@ -39,7 +40,15 @@ export const AppNavigator = () => {
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+    <View
+      style={[
+        styles.root,
+        {
+          backgroundColor: colors.background,
+          paddingTop: Math.max(insets.top, 8),
+        },
+      ]}
+    >
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         {/* Pantalla activa */}
         <View style={styles.screenContainer}>{renderScreen()}</View>
@@ -52,6 +61,7 @@ export const AppNavigator = () => {
               backgroundColor: colors.tabBarBg,
               borderTopColor: colors.tabBarBorder,
               shadowColor: colors.cardShadow,
+              paddingBottom: Math.max(insets.bottom, 12),
             },
           ]}
         >
@@ -266,12 +276,12 @@ export const AppNavigator = () => {
           </TouchableOpacity>
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
+  root: {
     flex: 1,
   },
   container: {
@@ -284,7 +294,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderTopWidth: 1,
     paddingVertical: 6,
-    paddingBottom: Platform.OS === 'ios' ? 14 : 8,
     elevation: 10,
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.1,

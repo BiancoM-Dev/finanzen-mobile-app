@@ -6,8 +6,8 @@ import {
   Image,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 export const ReceiptViewerModal = ({ visible, imageUri, title = 'Comprobante de Pago', onClose }) => {

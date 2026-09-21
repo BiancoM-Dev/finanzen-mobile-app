@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFinance } from '../context/FinanceContext';
@@ -33,7 +32,7 @@ export const SocialDebtsScreen = () => {
   const filteredItems = socialDebts.filter((item) => item.type === activeTab);
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+    <View style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <View style={styles.container}>
         {/* Encabezado */}
         <View style={styles.header}>
@@ -214,7 +213,7 @@ export const SocialDebtsScreen = () => {
           onSave={saveSocialDebt}
         />
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

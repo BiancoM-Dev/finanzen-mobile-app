@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   Switch,
   Alert,
   Modal,
@@ -95,7 +94,7 @@ export const FixedExpensesScreen = () => {
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+    <View style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <View style={styles.container}>
         {/* Cabecera */}
         <View style={styles.header}>
@@ -477,7 +476,7 @@ export const FixedExpensesScreen = () => {
           </View>
         </Modal>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

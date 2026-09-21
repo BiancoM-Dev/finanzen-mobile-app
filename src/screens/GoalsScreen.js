@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFinance } from '../context/FinanceContext';
@@ -41,7 +40,7 @@ export const GoalsScreen = () => {
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+    <View style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <View style={styles.container}>
         {/* Cabecera */}
         <View style={styles.header}>
@@ -133,7 +132,7 @@ export const GoalsScreen = () => {
           onSave={saveGoal}
         />
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

@@ -11,213 +11,49 @@ const STORAGE_KEYS = {
   USER_PROFILE: '@finanzen_user_profile',
 };
 
-// Datos semilla de demostración para el primer arranque
-const SEED_DATA = {
-  profile: {
-    name: 'Usuario FinanZen',
-    email: 'mi.usuario@gmail.com',
-    avatarUri: null,
-    preferredCurrency: '$',
-    isGoogleLinked: false,
-    monthlyIncome: 1200000,
-  },
-  bankAccounts: [
-    {
-      id: 'bank_1',
-      bankName: 'BancoEstado',
-      accountType: AccountType.VISTA_RUT,
-      accountNumber: '12345678',
-      holderName: 'Mi Nombre Completo',
-      rutOrId: '12.345.678-9',
-      aliasOrCvu: '',
-      isPrimary: true,
-      orderPriority: 1,
-    },
-    {
-      id: 'bank_2',
-      bankName: 'Mercado Pago / Tenpo',
-      accountType: AccountType.BILLETERA_DIGITAL,
-      accountNumber: 'CVU 000012345678',
-      holderName: 'Mi Nombre Completo',
-      rutOrId: '12.345.678-9',
-      aliasOrCvu: 'mi.alias.pago',
-      isPrimary: false,
-      orderPriority: 2,
-    },
-  ],
-  debts: [
-    {
-      id: 'debt_1',
-      name: 'Crédito Moto Yamaha',
-      totalAmount: 2800000,
-      remainingAmount: 1866666,
-      totalInstallments: 24,
-      paidInstallments: 8,
-      monthlyDueDate: 5,
-      monthlyAmount: 116666,
-      category: DebtCategory.AUTOMOTRIZ,
-      notes: 'Financiamiento directo concesionario',
-      paymentsHistory: [
-        {
-          id: 'pay_1',
-          installmentNumber: 8,
-          amount: 116666,
-          date: '2026-09-05',
-          receiptUri: null,
-          notes: 'Cuota pagada por transferencia',
-        },
-      ],
-    },
-    {
-      id: 'debt_2',
-      name: 'Tarjeta de Crédito (Electrónicos)',
-      totalAmount: 360000,
-      remainingAmount: 120000,
-      totalInstallments: 6,
-      paidInstallments: 4,
-      monthlyDueDate: 18,
-      monthlyAmount: 60000,
-      category: DebtCategory.TARJETA_CREDITO,
-      notes: 'Compra de computador en cuotas sin interés',
-      paymentsHistory: [],
-    },
-  ],
-  bills: [
-    {
-      id: 'bill_1',
-      name: 'Luz (Enel / CGE)',
-      category: BillCategory.LUZ,
-      estimatedAmount: 48000,
-      dueDay: 12,
-      isPaid: false,
-      isSplit: true,
-      splitMembers: [
-        { id: 'm_1', name: 'Yo', amount: 24000, isPaid: true, paidDate: '2026-09-10', receiptUri: null },
-        { id: 'm_2', name: 'Hermano', amount: 24000, isPaid: false, paidDate: null, receiptUri: null },
-      ],
-    },
-    {
-      id: 'bill_2',
-      name: 'Agua Potable',
-      category: BillCategory.AGUA,
-      estimatedAmount: 22500,
-      dueDay: 20,
-      isPaid: false,
-      isSplit: false,
-      splitMembers: [],
-    },
-    {
-      id: 'bill_3',
-      name: 'Internet Fibra Óptica',
-      category: BillCategory.INTERNET,
-      estimatedAmount: 26990,
-      dueDay: 15,
-      isPaid: true,
-      isSplit: false,
-      splitMembers: [],
-    },
-  ],
-  subscriptions: [
-    {
-      id: 'sub_1',
-      name: 'Netflix',
-      amount: 9490,
-      category: SubscriptionCategory.STREAMING,
-      billingCycle: 'monthly',
-      renewalDay: 8,
-      isActive: true,
-    },
-    {
-      id: 'sub_2',
-      name: 'Spotify Premium',
-      amount: 4550,
-      category: SubscriptionCategory.STREAMING,
-      billingCycle: 'monthly',
-      renewalDay: 24,
-      isActive: true,
-    },
-    {
-      id: 'sub_3',
-      name: 'Gimnasio SmartFit',
-      amount: 23900,
-      category: SubscriptionCategory.GIMNASIO,
-      billingCycle: 'monthly',
-      renewalDay: 1,
-      isActive: true,
-    },
-  ],
-  goals: [
-    {
-      id: 'goal_1',
-      title: 'Comprar Moto Yamaha FZ 250',
-      targetAmount: 3900000,
-      currentAmount: 1650000,
-      targetDate: '2026-12-30',
-      photoUri: null, // El usuario podrá cargar una foto real desde la galería o cámara
-      category: 'Vehículo',
-      motivationNote: 'Para moverme libre y salir a rutear los fines de semana. ¡Cada ahorro me acerca más!',
-      depositsHistory: [
-        { id: 'dep_1', amount: 650000, date: '2026-07-15', note: 'Ahorro base' },
-        { id: 'dep_2', amount: 500000, date: '2026-08-20', note: 'Ahorro del mes' },
-        { id: 'dep_3', amount: 500000, date: '2026-09-10', note: 'Abono extra por horas extras' },
-      ],
-    },
-  ],
-  socialDebts: [
-    {
-      id: 'soc_1',
-      personName: 'Hermano',
-      type: SocialDebtType.THEY_OWE_ME,
-      concept: 'Compra de carne para el asado y súper',
-      totalAmount: 28500,
-      paidAmount: 0,
-      date: '2026-09-18',
-      status: 'pending',
-      phone: '',
-      receiptUri: null,
-    },
-    {
-      id: 'soc_2',
-      personName: 'Carlos (Amigo)',
-      type: SocialDebtType.THEY_OWE_ME,
-      concept: 'Entrada para el concierto',
-      totalAmount: 45000,
-      paidAmount: 20000,
-      date: '2026-09-12',
-      status: 'partial',
-      phone: '',
-      receiptUri: null,
-    },
-  ],
+// Perfil inicial limpio para comenzar desde 0
+const CLEAN_PROFILE = {
+  name: 'Mi Perfil',
+  email: '',
+  avatarUri: null,
+  preferredCurrency: '$',
+  isGoogleLinked: false,
+  monthlyIncome: 0,
 };
 
 class StorageService {
   async initData() {
     try {
-      const initialized = await AsyncStorage.getItem('@finanzen_initialized');
-      if (!initialized) {
-        await this.resetToSeedData();
+      const dataVersion = await AsyncStorage.getItem('@finanzen_data_version');
+      // Si la versión no es v2_clean, purgamos los datos de prueba anteriores
+      if (dataVersion !== 'v2_clean') {
+        await this.clearAllData();
       }
     } catch (e) {
       console.error('Error inicializando StorageService:', e);
     }
   }
 
-  async resetToSeedData() {
-    await AsyncStorage.setItem(STORAGE_KEYS.USER_PROFILE, JSON.stringify(SEED_DATA.profile));
-    await AsyncStorage.setItem(STORAGE_KEYS.BANK_ACCOUNTS, JSON.stringify(SEED_DATA.bankAccounts));
-    await AsyncStorage.setItem(STORAGE_KEYS.DEBTS, JSON.stringify(SEED_DATA.debts));
-    await AsyncStorage.setItem(STORAGE_KEYS.BILLS, JSON.stringify(SEED_DATA.bills));
-    await AsyncStorage.setItem(STORAGE_KEYS.SUBSCRIPTIONS, JSON.stringify(SEED_DATA.subscriptions));
-    await AsyncStorage.setItem(STORAGE_KEYS.GOALS, JSON.stringify(SEED_DATA.goals));
-    await AsyncStorage.setItem(STORAGE_KEYS.SOCIAL_DEBTS, JSON.stringify(SEED_DATA.socialDebts));
+  async clearAllData() {
+    await AsyncStorage.setItem(STORAGE_KEYS.USER_PROFILE, JSON.stringify(CLEAN_PROFILE));
+    await AsyncStorage.setItem(STORAGE_KEYS.BANK_ACCOUNTS, JSON.stringify([]));
+    await AsyncStorage.setItem(STORAGE_KEYS.DEBTS, JSON.stringify([]));
+    await AsyncStorage.setItem(STORAGE_KEYS.BILLS, JSON.stringify([]));
+    await AsyncStorage.setItem(STORAGE_KEYS.SUBSCRIPTIONS, JSON.stringify([]));
+    await AsyncStorage.setItem(STORAGE_KEYS.GOALS, JSON.stringify([]));
+    await AsyncStorage.setItem(STORAGE_KEYS.SOCIAL_DEBTS, JSON.stringify([]));
     await AsyncStorage.setItem('@finanzen_initialized', 'true');
+    await AsyncStorage.setItem('@finanzen_data_version', 'v2_clean');
+  }
+
+  async resetToSeedData() {
+    await this.clearAllData();
   }
 
   // --- Perfil de Usuario ---
   async getUserProfile() {
     const data = await AsyncStorage.getItem(STORAGE_KEYS.USER_PROFILE);
-    return data ? JSON.parse(data) : SEED_DATA.profile;
+    return data ? JSON.parse(data) : CLEAN_PROFILE;
   }
 
   async saveUserProfile(profile) {

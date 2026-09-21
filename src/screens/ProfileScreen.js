@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   Image,
   Alert,
   Modal,
@@ -99,17 +98,17 @@ export const ProfileScreen = () => {
 
   const handleResetData = () => {
     Alert.alert(
-      'Restablecer datos de prueba',
-      '¿Deseas recargar los datos semilla de ejemplo (deudas, cuentas de luz/agua, metas y préstamos)?',
+      'Empezar de 0',
+      '¿Deseas borrar todos los datos locales y empezar completamente desde cero?',
       [
         { text: 'Cancelar', style: 'cancel' },
-        { text: 'Restablecer', style: 'destructive', onPress: resetData },
+        { text: 'Borrar todo y reiniciar', style: 'destructive', onPress: resetData },
       ]
     );
   };
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+    <View style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -544,9 +543,9 @@ export const ProfileScreen = () => {
         >
           <TouchableOpacity style={styles.optionRow} onPress={handleResetData}>
             <View style={styles.optionLeft}>
-              <Ionicons name="refresh-circle-outline" size={22} color="#F59E0B" />
-              <Text style={[styles.optionText, { color: colors.textPrimary }]}>
-                Restablecer datos de prueba
+              <Ionicons name="trash-outline" size={22} color="#EF4444" />
+              <Text style={[styles.optionText, { color: '#EF4444' }]}>
+                Empezar de 0 (Borrar todos los datos)
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
@@ -655,7 +654,7 @@ export const ProfileScreen = () => {
         onClose={() => setShowHouseholdModal(false)}
         onHouseholdUpdated={(updatedH) => setHouseholdData(updatedH)}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

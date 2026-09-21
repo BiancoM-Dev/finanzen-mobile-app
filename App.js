@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { FinanceProvider, useFinance } from './src/context/FinanceContext';
 import { AppNavigator } from './src/navigation/AppNavigator';
@@ -19,7 +20,11 @@ function MainApp() {
 
   return (
     <>
-      <StatusBar style={isDark ? 'light' : 'dark'} />
+      <StatusBar
+        style={isDark ? 'light' : 'dark'}
+        translucent
+        backgroundColor="transparent"
+      />
       <AppNavigator />
     </>
   );
@@ -27,11 +32,13 @@ function MainApp() {
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <FinanceProvider>
-        <MainApp />
-      </FinanceProvider>
-    </ThemeProvider>
+    <SafeAreaProvider>
+      <ThemeProvider>
+        <FinanceProvider>
+          <MainApp />
+        </FinanceProvider>
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }
 
