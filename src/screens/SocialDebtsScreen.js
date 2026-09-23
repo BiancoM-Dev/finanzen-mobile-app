@@ -21,6 +21,7 @@ export const SocialDebtsScreen = () => {
     totalIOwe,
     saveSocialDebt,
     paySocialDebt,
+    adjustSocialDebt,
     deleteSocialDebt,
   } = useFinance();
 
@@ -191,6 +192,7 @@ export const SocialDebtsScreen = () => {
                 key={item.id}
                 item={item}
                 onPay={paySocialDebt}
+                onAdjust={adjustSocialDebt}
                 onDelete={deleteSocialDebt}
               />
             ))

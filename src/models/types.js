@@ -41,3 +41,18 @@ export const AccountType = {
   BILLETERA_DIGITAL: 'Billetera Digital (Mercado Pago, Mach, Tenpo, etc.)',
   OTRA: 'Otra',
 };
+
+export const IncomeCategory = {
+  SUELDO: 'Sueldo / Salario',
+  VENTA: 'Ventas / Comercio',
+  FREELANCE: 'Freelance / Pololos',
+  INVERSION: 'Inversión / Intereses',
+  REGALO: 'Regalo / Apoyo',
+  OTRO: 'Otro Ingreso',
+};
+
+export const SocialDebtAdjustmentType = {
+  INCREASE: 'INCREASE', // Aumentar saldo (+)
+  DECREASE: 'DECREASE', // Disminuir saldo (-)
+};
+

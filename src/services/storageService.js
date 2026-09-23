@@ -9,6 +9,7 @@ const STORAGE_KEYS = {
   SOCIAL_DEBTS: '@finanzen_social_debts',
   BANK_ACCOUNTS: '@finanzen_bank_accounts',
   USER_PROFILE: '@finanzen_user_profile',
+  INCOMES: '@finanzen_incomes',
 };
 
 // Perfil inicial limpio para comenzar desde 0
@@ -42,6 +43,7 @@ class StorageService {
     await AsyncStorage.setItem(STORAGE_KEYS.SUBSCRIPTIONS, JSON.stringify([]));
     await AsyncStorage.setItem(STORAGE_KEYS.GOALS, JSON.stringify([]));
     await AsyncStorage.setItem(STORAGE_KEYS.SOCIAL_DEBTS, JSON.stringify([]));
+    await AsyncStorage.setItem(STORAGE_KEYS.INCOMES, JSON.stringify([]));
     await AsyncStorage.setItem('@finanzen_initialized', 'true');
     await AsyncStorage.setItem('@finanzen_data_version', 'v2_clean');
   }
@@ -333,10 +335,70 @@ class StorageService {
     return updated;
   }
 
+  async adjustSocialDebt(id, { type, amount, reason }) {
+    const list = await this.getSocialDebts();
+    const updated = list.map((item) => {
+      if (item.id !== id) return item;
+      const numAmount = Math.abs(Number(amount)) || 0;
+      let newTotal = item.totalAmount;
+
+      if (type === 'INCREASE') {
+        newTotal += numAmount;
+      } else if (type === 'DECREASE') {
+        newTotal = Math.max(item.paidAmount || 0, item.totalAmount - numAmount);
+      }
+
+      const isComplete = (item.paidAmount || 0) >= newTotal;
+      const adjustment = {
+        id: `adj_${Date.now()}`,
+        type, // 'INCREASE' | 'DECREASE'
+        amount: numAmount,
+        reason: reason || (type === 'INCREASE' ? 'Aumento de deuda / Préstamo adicional' : 'Rebaja / Descuento aplicado'),
+        date: new Date().toISOString(),
+      };
+
+      return {
+        ...item,
+        totalAmount: newTotal,
+        status: isComplete ? 'paid' : ((item.paidAmount || 0) > 0 ? 'partial' : 'pending'),
+        adjustments: [adjustment, ...(item.adjustments || [])],
+      };
+    });
+    await AsyncStorage.setItem(STORAGE_KEYS.SOCIAL_DEBTS, JSON.stringify(updated));
+    return updated;
+  }
+
   async deleteSocialDebt(id) {
     const list = await this.getSocialDebts();
     const updated = list.filter((i) => i.id !== id);
     await AsyncStorage.setItem(STORAGE_KEYS.SOCIAL_DEBTS, JSON.stringify(updated));
+    return updated;
+  }
+
+  // --- Ingresos Manuales / Variables (Personas sin sueldo fijo, freelancers, ventas) ---
+  async getIncomes() {
+    const data = await AsyncStorage.getItem(STORAGE_KEYS.INCOMES);
+    return data ? JSON.parse(data) : [];
+  }
+
+  async saveIncome(income) {
+    const incomes = await this.getIncomes();
+    const index = incomes.findIndex((inc) => inc.id === income.id);
+    let updated;
+    if (index >= 0) {
+      updated = [...incomes];
+      updated[index] = income;
+    } else {
+      updated = [income, ...incomes];
+    }
+    await AsyncStorage.setItem(STORAGE_KEYS.INCOMES, JSON.stringify(updated));
+    return updated;
+  }
+
+  async deleteIncome(id) {
+    const incomes = await this.getIncomes();
+    const updated = incomes.filter((inc) => inc.id !== id);
+    await AsyncStorage.setItem(STORAGE_KEYS.INCOMES, JSON.stringify(updated));
     return updated;
   }
 }

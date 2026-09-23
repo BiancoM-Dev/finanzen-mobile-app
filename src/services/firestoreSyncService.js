@@ -16,7 +16,7 @@ class FirestoreSyncService {
       const userDocRef = doc(db, 'users', userId);
       const userSnap = await getDoc(userDocRef);
 
-      const [localDebts, localBills, localSubs, localGoals, localSocial, localBanks, localProfile] =
+      const [localDebts, localBills, localSubs, localGoals, localSocial, localBanks, localProfile, localIncomes] =
         await Promise.all([
           storageService.getDebts(),
           storageService.getBills(),
@@ -25,6 +25,7 @@ class FirestoreSyncService {
           storageService.getSocialDebts(),
           storageService.getBankAccounts(),
           storageService.getUserProfile(),
+          storageService.getIncomes(),
         ]);
 
       // Si el usuario ya tenía datos en la nube, los combinamos o usamos los de la nube
@@ -38,6 +39,7 @@ class FirestoreSyncService {
           socialDebts: cloudData.socialDebts || localSocial,
           bankAccounts: cloudData.bankAccounts || localBanks,
           profile: { ...localProfile, ...(cloudData.profile || {}) },
+          incomes: cloudData.incomes || localIncomes,
           householdId: cloudData.householdId || null,
         };
       }
@@ -51,6 +53,7 @@ class FirestoreSyncService {
         subscriptions: localSubs,
         goals: localGoals,
         socialDebts: localSocial,
+        incomes: localIncomes,
         updatedAt: new Date().toISOString(),
       };
 

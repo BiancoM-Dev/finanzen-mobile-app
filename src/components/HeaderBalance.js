@@ -11,15 +11,19 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFinance } from '../context/FinanceContext';
 import { useTheme } from '../context/ThemeContext';
 import { formatCurrency, parseCurrencyInput } from '../utils/currencyFormatter';
+import { AddIncomeModal } from './Modals/AddIncomeModal';
 
 export const HeaderBalance = ({ onOpenProfile }) => {
   const {
     profile,
+    baseMonthlyIncome,
+    currentMonthManualIncomes,
     monthlyIncome,
     totalFixedMonthlyExpenses,
     availableMonthlyBalance,
     upcomingAlerts,
     updateMonthlyIncome,
+    saveIncome,
     currentUser,
     household,
     syncStatus,
@@ -28,7 +32,8 @@ export const HeaderBalance = ({ onOpenProfile }) => {
   const { colors, isDark, toggleTheme } = useTheme();
 
   const [isEditingIncome, setIsEditingIncome] = useState(false);
-  const [tempIncomeText, setTempIncomeText] = useState(monthlyIncome.toString());
+  const [showAddIncomeModal, setShowAddIncomeModal] = useState(false);
+  const [tempIncomeText, setTempIncomeText] = useState((baseMonthlyIncome || 0).toString());
   const [hideBalance, setHideBalance] = useState(false);
 
   const handleSaveIncome = () => {
@@ -174,16 +179,28 @@ export const HeaderBalance = ({ onOpenProfile }) => {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity
-            style={styles.editIncomeBadge}
-            onPress={() => {
-              setTempIncomeText(monthlyIncome.toString());
-              setIsEditingIncome(true);
-            }}
-          >
-            <Ionicons name="pencil" size={11} color="#A5B4FC" />
-            <Text style={styles.editIncomeText}>Ajustar Ingreso</Text>
-          </TouchableOpacity>
+          <View style={styles.cardHeaderButtons}>
+            <TouchableOpacity
+              style={styles.addIncomeBadge}
+              onPress={() => setShowAddIncomeModal(true)}
+              activeOpacity={0.75}
+            >
+              <Ionicons name="add-circle" size={12} color="#34D399" />
+              <Text style={styles.addIncomeText}>+ Ingreso</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.editIncomeBadge}
+              onPress={() => {
+                setTempIncomeText((baseMonthlyIncome || 0).toString());
+                setIsEditingIncome(true);
+              }}
+              activeOpacity={0.75}
+            >
+              <Ionicons name="pencil" size={11} color="#A5B4FC" />
+              <Text style={styles.editIncomeText}>Sueldo Base</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <Text
@@ -199,17 +216,29 @@ export const HeaderBalance = ({ onOpenProfile }) => {
 
         {/* Fila de Ingresos vs Gastos Fijos */}
         <View style={styles.metricsRow}>
-          <View style={styles.metricItem}>
+          <TouchableOpacity
+            style={styles.metricItem}
+            onPress={() => setShowAddIncomeModal(true)}
+            activeOpacity={0.75}
+          >
             <View style={styles.metricIconWrapIncome}>
               <Ionicons name="arrow-up" size={14} color="#34D399" />
             </View>
             <View>
-              <Text style={styles.metricLabel}>Ingresos</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+                <Text style={styles.metricLabel}>Ingresos</Text>
+                <Ionicons name="add-circle-outline" size={10} color="#34D399" />
+              </View>
               <Text style={styles.metricValue}>
                 {hideBalance ? '$ • • •' : formatCurrency(monthlyIncome)}
               </Text>
+              {currentMonthManualIncomes > 0 && !hideBalance && (
+                <Text style={styles.metricExtraSub}>
+                  +{formatCurrency(currentMonthManualIncomes)} extras
+                </Text>
+              )}
             </View>
-          </View>
+          </TouchableOpacity>
 
           <View style={styles.metricItem}>
             <View style={styles.metricIconWrapExpense}>
@@ -259,15 +288,15 @@ export const HeaderBalance = ({ onOpenProfile }) => {
         </View>
       )}
 
-      {/* Modal para editar ingreso mensual */}
+      {/* Modal para configurar sueldo fijo mensual */}
       <Modal visible={isEditingIncome} transparent animationType="fade">
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
             <Text style={[styles.modalTitle, { color: colors.textPrimary }]}>
-              Editar Ingreso Mensual
+              Sueldo Base Mensual
             </Text>
             <Text style={[styles.modalDescription, { color: colors.textSecondary }]}>
-              Indica tu sueldo o ingresos fijos totales para calcular tu saldo libre.
+              Indica tu sueldo fijo o ingreso contractual mensual. Si eres independiente o no tienes sueldo fijo, déjalo en $0 y usa el botón "+ Ingreso" cada vez que recibas dinero.
             </Text>
 
             <View
@@ -306,6 +335,13 @@ export const HeaderBalance = ({ onOpenProfile }) => {
           </View>
         </View>
       </Modal>
+
+      {/* Modal para registrar ingreso manual o variable */}
+      <AddIncomeModal
+        visible={showAddIncomeModal}
+        onClose={() => setShowAddIncomeModal(false)}
+        onSave={saveIncome}
+      />
     </View>
   );
 };
@@ -386,13 +422,34 @@ const styles = StyleSheet.create({
   eyeBtn: {
     padding: 2,
   },
+  cardHeaderButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  addIncomeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(52, 211, 153, 0.22)',
+    borderWidth: 1,
+    borderColor: 'rgba(52, 211, 153, 0.45)',
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 14,
+    gap: 4,
+  },
+  addIncomeText: {
+    color: '#6EE7B7',
+    fontSize: 11,
+    fontWeight: '700',
+  },
   editIncomeBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: 'rgba(99, 102, 241, 0.25)',
     borderWidth: 1,
     borderColor: 'rgba(165, 180, 252, 0.4)',
-    paddingHorizontal: 10,
+    paddingHorizontal: 9,
     paddingVertical: 5,
     borderRadius: 14,
     gap: 4,
@@ -447,6 +504,12 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '800',
     color: '#F8FAFC',
+    marginTop: 1,
+  },
+  metricExtraSub: {
+    fontSize: 10,
+    color: '#34D399',
+    fontWeight: '700',
     marginTop: 1,
   },
   alertBanner: {

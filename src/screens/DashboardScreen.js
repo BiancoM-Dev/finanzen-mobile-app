@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFinance } from '../context/FinanceContext';
@@ -15,6 +16,7 @@ import { AddDebtModal } from '../components/Modals/AddDebtModal';
 import { AddBillModal } from '../components/Modals/AddBillModal';
 import { AddGoalModal } from '../components/Modals/AddGoalModal';
 import { AddSocialDebtModal } from '../components/Modals/AddSocialDebtModal';
+import { AddIncomeModal } from '../components/Modals/AddIncomeModal';
 
 export const DashboardScreen = ({ onNavigateTab }) => {
   const {
@@ -26,14 +28,21 @@ export const DashboardScreen = ({ onNavigateTab }) => {
     totalTargetGoals,
     totalOwedToMe,
     totalIOwe,
+    incomes,
+    baseMonthlyIncome,
+    currentMonthManualIncomes,
+    monthlyIncome,
     saveDebt,
     saveBill,
     saveGoal,
     saveSocialDebt,
+    saveIncome,
+    deleteIncome,
   } = useFinance();
 
   const { colors, isDark } = useTheme();
 
+  const [showAddIncome, setShowAddIncome] = useState(false);
   const [showAddDebt, setShowAddDebt] = useState(false);
   const [showAddBill, setShowAddBill] = useState(false);
   const [showAddGoal, setShowAddGoal] = useState(false);
@@ -55,7 +64,42 @@ export const DashboardScreen = ({ onNavigateTab }) => {
           </Text>
         </View>
 
-        <View style={styles.quickActionsGrid}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.quickActionsScroll}
+        >
+          {/* + Ingreso */}
+          <TouchableOpacity
+            style={[
+              styles.quickActionCard,
+              {
+                backgroundColor: colors.surface,
+                borderColor: colors.border,
+                shadowColor: colors.cardShadow,
+              },
+            ]}
+            onPress={() => setShowAddIncome(true)}
+            activeOpacity={0.75}
+          >
+            <View
+              style={[
+                styles.quickIconWrap,
+                {
+                  backgroundColor: isDark
+                    ? 'rgba(52, 211, 153, 0.2)'
+                    : '#D1FAE5',
+                },
+              ]}
+            >
+              <Ionicons name="arrow-down-circle" size={20} color={colors.success} />
+            </View>
+            <Text style={[styles.quickActionText, { color: colors.textPrimary }]}>
+              + Ingreso
+            </Text>
+          </TouchableOpacity>
+
+          {/* + Deuda */}
           <TouchableOpacity
             style={[
               styles.quickActionCard,
@@ -81,6 +125,7 @@ export const DashboardScreen = ({ onNavigateTab }) => {
             </Text>
           </TouchableOpacity>
 
+          {/* + Cuenta */}
           <TouchableOpacity
             style={[
               styles.quickActionCard,
@@ -110,6 +155,7 @@ export const DashboardScreen = ({ onNavigateTab }) => {
             </Text>
           </TouchableOpacity>
 
+          {/* + Meta */}
           <TouchableOpacity
             style={[
               styles.quickActionCard,
@@ -139,6 +185,7 @@ export const DashboardScreen = ({ onNavigateTab }) => {
             </Text>
           </TouchableOpacity>
 
+          {/* + Favor */}
           <TouchableOpacity
             style={[
               styles.quickActionCard,
@@ -163,7 +210,7 @@ export const DashboardScreen = ({ onNavigateTab }) => {
               + Favor
             </Text>
           </TouchableOpacity>
-        </View>
+        </ScrollView>
 
         {/* Panorama Financiero */}
         <View style={styles.sectionHeader}>
@@ -171,6 +218,51 @@ export const DashboardScreen = ({ onNavigateTab }) => {
             Panorama Financiero
           </Text>
         </View>
+
+        {/* Tarjeta: Ingresos Totales del Mes */}
+        <TouchableOpacity
+          style={[
+            styles.summaryCard,
+            {
+              backgroundColor: colors.surface,
+              borderColor: colors.border,
+              shadowColor: colors.cardShadow,
+            },
+          ]}
+          onPress={() => setShowAddIncome(true)}
+          activeOpacity={0.85}
+        >
+          <View style={styles.summaryCardLeft}>
+            <View
+              style={[
+                styles.summaryIcon,
+                { backgroundColor: isDark ? 'rgba(52, 211, 153, 0.2)' : '#D1FAE5' },
+              ]}
+            >
+              <Ionicons name="wallet-outline" size={22} color={colors.success} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.summaryTitle, { color: colors.textPrimary }]}>
+                Ingresos del Mes
+              </Text>
+              <Text style={[styles.summarySubtitle, { color: colors.textMuted }]}>
+                {baseMonthlyIncome > 0 ? `Base: ${formatCurrency(baseMonthlyIncome)}` : 'Sin sueldo fijo'}
+                {currentMonthManualIncomes > 0 ? ` • Extras: +${formatCurrency(currentMonthManualIncomes)}` : ''}
+              </Text>
+            </View>
+          </View>
+          <View style={{ alignItems: 'flex-end' }}>
+            <Text style={[styles.summaryValue, { color: colors.success }]}>
+              {formatCurrency(monthlyIncome)}
+            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2, marginTop: 2 }}>
+              <Ionicons name="add-circle" size={13} color={colors.success} />
+              <Text style={{ fontSize: 11, fontWeight: '700', color: colors.success }}>
+                Añadir
+              </Text>
+            </View>
+          </View>
+        </TouchableOpacity>
 
         {/* Tarjeta: Deuda Total Pendiente */}
         <TouchableOpacity
@@ -340,9 +432,105 @@ export const DashboardScreen = ({ onNavigateTab }) => {
             </View>
           </View>
         </View>
+
+        {/* Registro de Ingresos Variables Recientes */}
+        {incomes.length > 0 && (
+          <View style={{ marginTop: 14 }}>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                paddingHorizontal: 16,
+                marginBottom: 10,
+              }}
+            >
+              <Text style={[styles.sectionTitle, { color: colors.textPrimary }]}>
+                Ingresos Recientes ({incomes.length})
+              </Text>
+              <TouchableOpacity onPress={() => setShowAddIncome(true)}>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: colors.success }}>
+                  + Añadir Ingreso
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ paddingHorizontal: 16, gap: 8 }}>
+              {incomes.slice(0, 4).map((inc) => (
+                <View
+                  key={inc.id}
+                  style={[
+                    styles.incomeRowItem,
+                    {
+                      backgroundColor: colors.surface,
+                      borderColor: colors.border,
+                      shadowColor: colors.cardShadow,
+                    },
+                  ]}
+                >
+                  <View style={styles.incomeRowLeft}>
+                    <View
+                      style={[
+                        styles.incomeIconWrap,
+                        {
+                          backgroundColor: isDark
+                            ? 'rgba(52, 211, 153, 0.15)'
+                            : '#D1FAE5',
+                        },
+                      ]}
+                    >
+                      <Ionicons name="arrow-down" size={14} color={colors.success} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={[styles.incomeTitle, { color: colors.textPrimary }]}
+                        numberOfLines={1}
+                      >
+                        {inc.title}
+                      </Text>
+                      <Text style={[styles.incomeSub, { color: colors.textMuted }]}>
+                        {inc.category || 'Ingreso'} • {inc.date}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.incomeRowRight}>
+                    <Text style={[styles.incomeAmount, { color: colors.success }]}>
+                      +{formatCurrency(inc.amount)}
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => {
+                        Alert.alert(
+                          'Eliminar ingreso',
+                          `¿Deseas eliminar el ingreso "${inc.title}"?`,
+                          [
+                            { text: 'Cancelar', style: 'cancel' },
+                            {
+                              text: 'Eliminar',
+                              style: 'destructive',
+                              onPress: () => deleteIncome(inc.id),
+                            },
+                          ]
+                        );
+                      }}
+                      style={{ padding: 4 }}
+                    >
+                      <Ionicons name="trash-outline" size={15} color={colors.textMuted} />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
       </ScrollView>
 
       {/* Modales rápidos */}
+      <AddIncomeModal
+        visible={showAddIncome}
+        onClose={() => setShowAddIncome(false)}
+        onSave={saveIncome}
+      />
       <AddDebtModal
         visible={showAddDebt}
         onClose={() => setShowAddDebt(false)}
@@ -384,13 +572,12 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: -0.3,
   },
-  quickActionsGrid: {
-    flexDirection: 'row',
+  quickActionsScroll: {
     paddingHorizontal: 16,
     gap: 10,
   },
   quickActionCard: {
-    flex: 1,
+    width: 78,
     borderRadius: 18,
     paddingVertical: 14,
     alignItems: 'center',
@@ -486,5 +673,48 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '800',
     marginTop: 2,
+  },
+  incomeRowItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    borderWidth: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  incomeRowLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+  },
+  incomeIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  incomeTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  incomeSub: {
+    fontSize: 11,
+    marginTop: 1,
+  },
+  incomeRowRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  incomeAmount: {
+    fontSize: 14,
+    fontWeight: '800',
   },
 });

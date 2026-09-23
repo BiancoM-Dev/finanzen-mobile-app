@@ -17,6 +17,7 @@ export const FinanceProvider = ({ children }) => {
   const [subscriptions, setSubscriptions] = useState([]);
   const [goals, setGoals] = useState([]);
   const [socialDebts, setSocialDebts] = useState([]);
+  const [incomes, setIncomes] = useState([]);
 
   // Estados de Firebase y Hogar Compartido (Fase 2)
   const [currentUser, setCurrentUser] = useState(null);
@@ -32,7 +33,7 @@ export const FinanceProvider = ({ children }) => {
       setLoading(true);
       await storageService.initData();
 
-      const [p, banks, d, b, s, g, soc] = await Promise.all([
+      const [p, banks, d, b, s, g, soc, inc] = await Promise.all([
         storageService.getUserProfile(),
         storageService.getBankAccounts(),
         storageService.getDebts(),
@@ -40,6 +41,7 @@ export const FinanceProvider = ({ children }) => {
         storageService.getSubscriptions(),
         storageService.getGoals(),
         storageService.getSocialDebts(),
+        storageService.getIncomes(),
       ]);
 
       setProfile(p);
@@ -49,6 +51,7 @@ export const FinanceProvider = ({ children }) => {
       setSubscriptions(s);
       setGoals(g);
       setSocialDebts(soc);
+      setIncomes(inc);
     } catch (error) {
       console.error('Error cargando datos de FinanZen:', error);
     } finally {
@@ -76,6 +79,7 @@ export const FinanceProvider = ({ children }) => {
             if (cloudData.subscriptions) setSubscriptions(cloudData.subscriptions);
             if (cloudData.goals) setGoals(cloudData.goals);
             if (cloudData.socialDebts) setSocialDebts(cloudData.socialDebts);
+            if (cloudData.incomes) setIncomes(cloudData.incomes);
 
             // Si el usuario pertenece a un Hogar Compartido
             const hid = cloudData.householdId || cloudData.profile?.householdId;
@@ -200,7 +204,16 @@ export const FinanceProvider = ({ children }) => {
   };
 
   // --- Cálculos y Métricas Financieras ---
-  const monthlyIncome = profile?.monthlyIncome || 0;
+  const baseMonthlyIncome = profile?.monthlyIncome || 0;
+
+  // Ingresos variables/manuales del mes en curso (YYYY-MM)
+  const currentMonthPrefix = new Date().toISOString().slice(0, 7);
+  const currentMonthManualIncomes = incomes
+    .filter((inc) => (inc.date || '').startsWith(currentMonthPrefix))
+    .reduce((sum, inc) => sum + (Number(inc.amount) || 0), 0);
+
+  // Total ingresos disponibles en el mes (sueldo base configurado + variables de este mes)
+  const monthlyIncome = baseMonthlyIncome + currentMonthManualIncomes;
 
   // Total cuotas mensuales de deudas formales
   const monthlyDebtsTotal = debts.reduce(
@@ -420,6 +433,26 @@ export const FinanceProvider = ({ children }) => {
     syncFieldToCloud('socialDebts', updated);
   };
 
+  // Ajustar Saldo en Cuentas Claras (+ / -)
+  const adjustSocialDebt = async (id, adjustmentData) => {
+    const updated = await storageService.adjustSocialDebt(id, adjustmentData);
+    setSocialDebts(updated);
+    syncFieldToCloud('socialDebts', updated);
+  };
+
+  // Ingresos Manuales / Variables
+  const saveIncome = async (income) => {
+    const updated = await storageService.saveIncome(income);
+    setIncomes(updated);
+    syncFieldToCloud('incomes', updated);
+  };
+
+  const deleteIncome = async (id) => {
+    const updated = await storageService.deleteIncome(id);
+    setIncomes(updated);
+    syncFieldToCloud('incomes', updated);
+  };
+
   // Reset de fábrica para demostración
   const resetData = async () => {
     await storageService.resetToSeedData();
@@ -438,6 +471,7 @@ export const FinanceProvider = ({ children }) => {
         subscriptions,
         goals,
         socialDebts,
+        incomes,
         // Firebase & Hogar Compartido (Fase 2)
         currentUser,
         household,
@@ -445,6 +479,8 @@ export const FinanceProvider = ({ children }) => {
         signOutUser,
         setHouseholdData,
         // Métricas
+        baseMonthlyIncome,
+        currentMonthManualIncomes,
         monthlyIncome,
         monthlyDebtsTotal,
         monthlyBillsTotal,
@@ -477,7 +513,10 @@ export const FinanceProvider = ({ children }) => {
         deleteGoal,
         saveSocialDebt,
         paySocialDebt,
+        adjustSocialDebt,
         deleteSocialDebt,
+        saveIncome,
+        deleteIncome,
         resetData,
       }}
     >
