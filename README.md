@@ -68,9 +68,9 @@
    - Descarga la app gratuita **Expo Go** desde Google Play Store.
 2. **Asegúrate de que tu celular y tu PC estén en la misma red Wi-Fi.**
 3. **Inicia el servidor de desarrollo:**
-   Abre una terminal en la carpeta del proyecto y ejecuta:
+   Abre una terminal en la carpeta raíz del proyecto y ejecuta:
    ```bash
-   cd d:\proyectos\finanzen-app
+   cd ./finanzen-app # o ingresa directamente al directorio del proyecto
    npx expo start
    ```
 4. **Escanea el código QR:**
@@ -95,8 +95,8 @@ Sigue estos sencillos pasos desde la terminal de tu computadora:
 Abre PowerShell en tu computadora y ejecuta:
 
 ```powershell
-# 1. Ve a la carpeta del proyecto
-cd d:\proyectos\finanzen-app
+# 1. Ve a la carpeta raíz del proyecto clonado
+cd ./finanzen-app
 
 # 2. Inicializa Git localmente
 git init
